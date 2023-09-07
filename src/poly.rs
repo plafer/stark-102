@@ -12,6 +12,27 @@ pub struct Polynomial {
     coefficients: Vec<BaseField>,
 }
 
+impl Polynomial {
+    pub fn new(coefficients: Vec<BaseField>) -> Self {
+        Self { coefficients }
+    }
+
+    pub fn lagrange_interp(
+        domain: CyclicGroup,
+        evaluations: Vec<BaseField>,
+    ) -> anyhow::Result<Self> {
+        if domain.len() != evaluations.len() {
+            bail!("domain and evaluations have different sizes");
+        }
+
+        todo!()
+    }
+
+    pub fn degree(&self) -> usize {
+        self.coefficients.len()
+    }
+}
+
 impl Add for Polynomial {
     type Output = Self;
 
@@ -38,26 +59,6 @@ impl Add for Polynomial {
     }
 }
 
-impl Polynomial {
-    pub fn new(coefficients: Vec<BaseField>) -> Self {
-        Self { coefficients }
-    }
-
-    pub fn lagrange_interp(
-        domain: CyclicGroup,
-        evaluations: Vec<BaseField>,
-    ) -> anyhow::Result<Self> {
-        if domain.len() != evaluations.len() {
-            bail!("domain and evaluations have different sizes");
-        }
-
-        todo!()
-    }
-
-    pub fn degree(&self) -> usize {
-        self.coefficients.len()
-    }
-}
 
 #[cfg(test)]
 mod tests {
