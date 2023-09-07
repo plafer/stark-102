@@ -1,4 +1,4 @@
-use std::{ops::{Mul, Div, Add}, fmt::Display};
+use std::{ops::{Mul, Div, Add, AddAssign}, fmt::Display};
 
 use anyhow::bail;
 
@@ -39,6 +39,12 @@ impl Add for BaseField {
         Self {
             element: (self.element + rhs.element) % PRIME,
         }
+    }
+}
+
+impl AddAssign for BaseField {
+    fn add_assign(&mut self, rhs: Self) {
+        *self = *self + rhs;
     }
 }
 
