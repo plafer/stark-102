@@ -1,13 +1,14 @@
 use std::{
     cmp::min,
-    ops::{Add, Mul},
+    iter::Sum,
+    ops::{Add, AddAssign, Mul, MulAssign},
 };
 
 use anyhow::bail;
 
 use crate::field::{BaseField, CyclicGroup};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Polynomial {
     // for
     // p(x) = a + bx + cx^2
@@ -20,19 +21,73 @@ impl Polynomial {
         Self { coefficients }
     }
 
-    pub fn lagrange_interp(
-        domain: CyclicGroup,
-        evaluations: Vec<BaseField>,
-    ) -> anyhow::Result<Self> {
+    pub fn zero() -> Self {
+        Self {
+            coefficients: vec![0.into()],
+        }
+    }
+
+    pub fn one() -> Self {
+        Self {
+            coefficients: vec![1.into()],
+        }
+    }
+
+    // https://mathworld.wolfram.com/LagrangeInterpolatingPolynomial.html
+    pub fn lagrange_interp(domain: CyclicGroup, evaluations: &[BaseField]) -> anyhow::Result<Self> {
         if domain.len() != evaluations.len() {
             bail!("domain and evaluations have different sizes");
         }
 
-        todo!()
+        let interpolated_poly = (0..domain.len())
+            .into_iter()
+            .map(|j| Self::sub_lagrange_poly(j, &domain, evaluations))
+            .sum();
+
+        Ok(interpolated_poly)
     }
 
     pub fn degree(&self) -> usize {
         self.coefficients.len() - 1
+    }
+
+    pub fn scalar_mul(&mut self, x: BaseField) {
+        let scalar_mul_poly = Self::new(vec![x]);
+
+        *self *= scalar_mul_poly;
+    }
+
+    pub fn scalar_div(&mut self, x: BaseField) {
+        for coeff in self.coefficients.iter_mut() {
+            *coeff /= x;
+        }
+    }
+
+    fn sub_lagrange_poly(j: usize, domain: &CyclicGroup, evaluations: &[BaseField]) -> Self {
+        let x_j = domain.elements[j];
+        let y_j = evaluations[j];
+
+        let (numerator, denominator) = {
+            let mut numerator = Polynomial::one();
+            let mut denominator = BaseField::one();
+
+            for domain_ele in domain.elements.iter() {
+                // x - x_k
+                numerator *= Polynomial::new(vec![BaseField::from(-1) * *domain_ele, 1.into()]);
+
+                if x_j != *domain_ele {
+                    denominator *= x_j - *domain_ele;
+                }
+            }
+
+            (numerator, denominator)
+        };
+
+        let mut out_poly = numerator;
+        out_poly.scalar_mul(y_j);
+        out_poly.scalar_div(denominator);
+
+        out_poly
     }
 }
 
@@ -59,6 +114,30 @@ impl Add for Polynomial {
         Self {
             coefficients: coefficients_sum,
         }
+    }
+}
+
+impl AddAssign for Polynomial {
+    fn add_assign(&mut self, rhs: Self) {
+        *self = self.clone() + rhs;
+    }
+}
+
+impl MulAssign for Polynomial {
+    fn mul_assign(&mut self, rhs: Self) {
+        *self = self.clone() * rhs;
+    }
+}
+
+impl Sum for Polynomial {
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+        let mut total = Self::zero();
+
+        for poly in iter {
+            total += poly;
+        }
+
+        total
     }
 }
 
@@ -128,5 +207,18 @@ mod tests {
             mul_poly.coefficients,
             vec![1.into(), 4.into(), 10.into(), 12.into(), 9.into()]
         )
+    }
+
+    #[test]
+    pub fn test_lagrange_interp() {
+        let domain = CyclicGroup::new(4).unwrap();
+        let evaluations: Vec<BaseField> = vec![3.into(), 9.into(), 13.into(), 16.into()];
+
+        let interp_poly = Polynomial::lagrange_interp(domain, &evaluations).unwrap();
+
+        assert_eq!(
+            interp_poly,
+            Polynomial::new(vec![6.into(), 16.into(), 2.into(), 13.into()])
+        );
     }
 }
