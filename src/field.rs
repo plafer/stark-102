@@ -57,6 +57,11 @@ impl BaseField {
         generator.exp((PRIME - 1) - i)
     }
 
+    /// Computes the additive inverse (i.e. -x).
+    pub fn minus(&self) -> Self {
+        BaseField::from(-1) * *self
+    }
+
     pub fn exp(self, exponent: u8) -> Self {
         let mut result = Self::one();
 
@@ -138,6 +143,10 @@ impl Mul for BaseField {
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self::Output {
+        if self == Self::zero() || rhs == Self::zero() {
+            return Self::zero();
+        }
+
         // We need this trick because 16 * 16 = 256 and overflows the u8.
         let mul_minus_one = self.element * (rhs.element - 1u8) % PRIME;
         Self {
@@ -268,11 +277,20 @@ mod tests {
     }
 
     #[test]
-    fn test_inv() {
+    fn test_mult_inv() {
         for i in 1..PRIME {
             let fel = BaseField::from(i);
 
             assert_eq!(BaseField::one(), fel * fel.mult_inv());
+        }
+    }
+
+    #[test]
+    fn test_additive_inv() {
+        for i in 0..PRIME {
+            let fel = BaseField::from(i);
+
+            assert_eq!(BaseField::zero(), fel + fel.minus());
         }
     }
 }
