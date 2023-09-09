@@ -84,10 +84,10 @@ impl Polynomial {
             let mut denominator = BaseField::one();
 
             for domain_ele in domain.elements.iter() {
-                // x - x_k
-                numerator *= Polynomial::new(vec![domain_ele.minus(), 1.into()]);
-
                 if x_j != *domain_ele {
+                    // x - x_k
+                    numerator *= Polynomial::new(vec![domain_ele.minus(), 1.into()]);
+
                     denominator *= x_j - *domain_ele;
                 }
             }
@@ -219,6 +219,65 @@ mod tests {
             mul_poly.coefficients,
             vec![1.into(), 4.into(), 10.into(), 12.into(), 9.into()]
         )
+    }
+
+    #[test]
+    pub fn poly_mul() {
+        // x - 13
+        let poly_1 = Polynomial::new(vec![(-13).into(), 1.into()]);
+        // x - 16
+        let poly_2 = Polynomial::new(vec![(-16).into(), 1.into()]);
+
+        let expected_mul_poly12 = Polynomial::new(vec![4.into(), 5.into(), 1.into()]);
+
+        assert_eq!(expected_mul_poly12, poly_1.clone() * poly_2.clone());
+
+        // x - 4
+        let poly_3 = Polynomial::new(vec![(-4).into(), 1.into()]);
+
+        let expected_mul_poly123 = Polynomial::new(vec![1.into(), 1.into(), 1.into(), 1.into()]);
+
+        assert_eq!(expected_mul_poly123, expected_mul_poly12 * poly_3.clone());
+
+        // Ensure associativity
+        assert_eq!(
+            (poly_1.clone() * poly_2.clone()) * poly_3.clone(),
+            poly_1 * (poly_2 * poly_3)
+        );
+    }
+
+    /// Same as poly_mul(), except uses *= operator
+    #[test]
+    pub fn poly_mul_assign() {
+        let mut result = Polynomial::one();
+
+        // x - 13
+        let poly_1 = Polynomial::new(vec![(-13).into(), 1.into()]);
+        // x - 16
+        let poly_2 = Polynomial::new(vec![(-16).into(), 1.into()]);
+
+        // x - 4
+        let poly_3 = Polynomial::new(vec![(-4).into(), 1.into()]);
+
+        result *= poly_1;
+        result *= poly_2;
+        result *= poly_3;
+
+        let expected_mul_poly123 = Polynomial::new(vec![1.into(), 1.into(), 1.into(), 1.into()]);
+
+        assert_eq!(expected_mul_poly123, result);
+    }
+
+    // Ensures that Poly::one() * any_polynomial = any_polynomial
+    #[test]
+    pub fn poly_mul_by_one() {
+        // x - 13
+        let poly_1 = Polynomial::new(vec![(-13).into(), 1.into()]);
+        // x - 16
+        let poly_2 = Polynomial::new(vec![1.into(), 2.into(), 3.into()]);
+
+        assert_eq!(poly_1.clone(), Polynomial::one() * poly_1);
+        assert_eq!(poly_2.clone(), Polynomial::one() * poly_2);
     }
 
     #[test]
