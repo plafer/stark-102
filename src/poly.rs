@@ -69,13 +69,13 @@ impl Polynomial {
 
         let interpolated_poly = (0..domain.len())
             .into_iter()
-            .map(|j| Self::sub_lagrange_poly(j, &domain, evaluations))
+            .map(|j| Self::partial_lagrange_poly(j, &domain, evaluations))
             .sum();
 
         Ok(interpolated_poly)
     }
 
-    fn sub_lagrange_poly(j: usize, domain: &CyclicGroup, evaluations: &[BaseField]) -> Self {
+    fn partial_lagrange_poly(j: usize, domain: &CyclicGroup, evaluations: &[BaseField]) -> Self {
         let x_j = domain.elements[j];
         let y_j = evaluations[j];
 
