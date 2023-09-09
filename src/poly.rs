@@ -85,7 +85,7 @@ impl Polynomial {
 
             for domain_ele in domain.elements.iter() {
                 // x - x_k
-                numerator *= Polynomial::new(vec![BaseField::from(-1) * *domain_ele, 1.into()]);
+                numerator *= Polynomial::new(vec![domain_ele.minus(), 1.into()]);
 
                 if x_j != *domain_ele {
                     denominator *= x_j - *domain_ele;
@@ -235,7 +235,4 @@ mod tests {
             Polynomial::new(vec![6.into(), 16.into(), 2.into(), 13.into()])
         );
     }
-
-    #[test]
-    pub fn dummy_temp() {}
 }
