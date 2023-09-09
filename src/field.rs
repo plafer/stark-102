@@ -37,6 +37,26 @@ impl BaseField {
         }
     }
 
+    /// Returns the multiplicative inverse for elements in the subgroup {1, ...,
+    /// 16} Yes, this is a bit messy, because not all elements of the field have
+    /// a multiplicative inverse.
+    pub fn mult_inv(&self) -> Self {
+        assert!(
+            *self != Self::zero(),
+            "0 is not in the multiplicative group and has no inverse"
+        );
+
+        // The generators of the multiplicative group {1, ..., 16} are
+        // 3, 5, 6, 7, 10, 11, 12, 14
+        // x/y = x * y^-1, where y * y^-1 = 1
+        // For any generator g, say y = g^i for some i. Then y^-1 = g^(16-i).
+
+        let generator = Self::from(3);
+        let i = Self::log(*self, generator);
+
+        generator.exp((PRIME - 1) - i)
+    }
+
     pub fn exp(self, exponent: u8) -> Self {
         let mut result = Self::one();
 
@@ -143,18 +163,7 @@ impl Div for BaseField {
             return self;
         }
 
-        // The generators of the multiplicative group {1, ..., 16} are
-        // 3, 5, 6, 7, 10, 11, 12, 14
-        // x/y = x * y^-1, where y * y^-1 = 1
-        // For any generator g, say y = g^i for some i. Then y^-1 = g^(16-i).
-        let generator = Self::from(3);
-        let rhs_inverse = {
-            let i = Self::log(rhs, generator);
-
-            generator.exp((PRIME - 1) - i)
-        };
-
-        self * rhs_inverse
+        self * rhs.mult_inv()
     }
 }
 
@@ -221,6 +230,7 @@ mod tests {
             BaseField::from(1)
         );
     }
+
     #[test]
     fn test_div() {
         for i in 1..PRIME {
@@ -255,5 +265,14 @@ mod tests {
 
         // By Fermat's Little Theorem
         assert_eq!(field.exp(PRIME - 1), BaseField::one());
+    }
+
+    #[test]
+    fn test_inv() {
+        for i in 1..PRIME {
+            let fel = BaseField::from(i);
+
+            assert_eq!(BaseField::one(), fel * fel.mult_inv());
+        }
     }
 }

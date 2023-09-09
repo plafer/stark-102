@@ -33,20 +33,6 @@ impl Polynomial {
         }
     }
 
-    // https://mathworld.wolfram.com/LagrangeInterpolatingPolynomial.html
-    pub fn lagrange_interp(domain: CyclicGroup, evaluations: &[BaseField]) -> anyhow::Result<Self> {
-        if domain.len() != evaluations.len() {
-            bail!("domain and evaluations have different sizes");
-        }
-
-        let interpolated_poly = (0..domain.len())
-            .into_iter()
-            .map(|j| Self::sub_lagrange_poly(j, &domain, evaluations))
-            .sum();
-
-        Ok(interpolated_poly)
-    }
-
     pub fn degree(&self) -> usize {
         self.coefficients.len() - 1
     }
@@ -58,9 +44,35 @@ impl Polynomial {
     }
 
     pub fn scalar_div(&mut self, x: BaseField) {
-        for coeff in self.coefficients.iter_mut() {
-            *coeff /= x;
+        self.scalar_mul(x.mult_inv())
+    }
+
+    /// Evaluates the polynomial at `x`
+    pub fn eval(&self, x: BaseField) -> BaseField {
+        let mut result = BaseField::zero();
+
+        for (i, coeff) in self.coefficients.iter().enumerate() {
+            result += *coeff * x.exp(i as u8)
         }
+
+        result
+    }
+
+    // https://mathworld.wolfram.com/LagrangeInterpolatingPolynomial.html
+    pub fn lagrange_interp(
+        domain: &CyclicGroup,
+        evaluations: &[BaseField],
+    ) -> anyhow::Result<Self> {
+        if domain.len() != evaluations.len() {
+            bail!("domain and evaluations have different sizes");
+        }
+
+        let interpolated_poly = (0..domain.len())
+            .into_iter()
+            .map(|j| Self::sub_lagrange_poly(j, &domain, evaluations))
+            .sum();
+
+        Ok(interpolated_poly)
     }
 
     fn sub_lagrange_poly(j: usize, domain: &CyclicGroup, evaluations: &[BaseField]) -> Self {
@@ -214,11 +226,16 @@ mod tests {
         let domain = CyclicGroup::new(4).unwrap();
         let evaluations: Vec<BaseField> = vec![3.into(), 9.into(), 13.into(), 16.into()];
 
-        let interp_poly = Polynomial::lagrange_interp(domain, &evaluations).unwrap();
+        let interp_poly = Polynomial::lagrange_interp(&domain, &evaluations).unwrap();
+
+        assert_eq!(interp_poly.eval(domain.elements[0]), evaluations[0]);
 
         assert_eq!(
             interp_poly,
             Polynomial::new(vec![6.into(), 16.into(), 2.into(), 13.into()])
         );
     }
+
+    #[test]
+    pub fn dummy_temp() {}
 }
