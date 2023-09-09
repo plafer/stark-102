@@ -1,6 +1,6 @@
 use std::{
     fmt::Display,
-    ops::{Add, AddAssign, Div, Mul, Sub, MulAssign, DivAssign},
+    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub},
 };
 
 use anyhow::bail;
@@ -35,6 +35,41 @@ impl BaseField {
         Self {
             element: (self.element * self.element) % PRIME,
         }
+    }
+
+    pub fn exp(self, exponent: u8) -> Self {
+        let mut result = Self::one();
+
+        for _ in 0..exponent {
+            result *= self;
+        }
+
+        return result;
+    }
+
+    /// Computes log_{base}(x); or,
+    /// finds i s.t. base**i == x
+    ///
+    /// Note: by the Discrete Logarithm Problem, we don't know how to
+    /// compute this efficiently!
+    pub fn log(x: Self, base: Self) -> u8 {
+        if x == Self::zero() {
+            panic!("log(0) is undefined");
+        }
+        if x == Self::one() {
+            return 0;
+        }
+
+        let mut result = Self::one();
+
+        for i in 1..PRIME {
+            result *= base;
+            if result == x {
+                return i;
+            }
+        }
+
+        panic!("log({x}, {base}) doesn't exist");
     }
 }
 
@@ -101,13 +136,25 @@ impl Div for BaseField {
     type Output = Self;
 
     fn div(self, rhs: Self) -> Self::Output {
-        if self.element % rhs.element != 0 {
-            panic!("Division of {self} and {rhs} has nonzero remainder");
+        if rhs == Self::zero() {
+            panic!("Divide by zero")
+        }
+        if self == Self::zero() {
+            return self;
         }
 
-        Self {
-            element: self.element / rhs.element,
-        }
+        // The generators of the multiplicative group {1, ..., 16} are
+        // 3, 5, 6, 7, 10, 11, 12, 14
+        // x/y = x * y^-1, where y * y^-1 = 1
+        // For any generator g, say y = g^i for some i. Then y^-1 = g^(16-i).
+        let generator = Self::from(3);
+        let rhs_inverse = {
+            let i = Self::log(rhs, generator);
+
+            generator.exp((PRIME - 1) - i)
+        };
+
+        self * rhs_inverse
     }
 }
 
@@ -164,15 +211,49 @@ mod tests {
     #[test]
     fn test_mul() {
         assert_eq!(BaseField::from(1) * BaseField::from(1), BaseField::from(1));
-        assert_eq!(BaseField::from(100) * BaseField::from(100), BaseField::from(4));
+        assert_eq!(
+            BaseField::from(100) * BaseField::from(100),
+            BaseField::from(4)
+        );
         // This overflows the u8 if we're not careful
-        assert_eq!(BaseField::from(16) * BaseField::from(16), BaseField::from(1));
+        assert_eq!(
+            BaseField::from(16) * BaseField::from(16),
+            BaseField::from(1)
+        );
+    }
+    #[test]
+    fn test_div() {
+        for i in 1..PRIME {
+            for j in 1..PRIME {
+                let numerator = BaseField::from(i);
+                let divisor = BaseField::from(j);
+                assert_eq!((numerator / divisor) * divisor, numerator,);
+            }
+        }
     }
 
     #[test]
     fn test_sub() {
         assert_eq!(BaseField::from(1) - BaseField::from(2), BaseField::from(16));
-        assert_eq!(BaseField::from(16) - BaseField::from(2), BaseField::from(14));
-        assert_eq!(BaseField::from(16) - BaseField::from(16), BaseField::from(0));
+        assert_eq!(
+            BaseField::from(16) - BaseField::from(2),
+            BaseField::from(14)
+        );
+        assert_eq!(
+            BaseField::from(16) - BaseField::from(16),
+            BaseField::from(0)
+        );
+    }
+
+    #[test]
+    fn test_exp() {
+        let field = BaseField::from(4);
+
+        assert_eq!(field.exp(0u8), BaseField::one());
+        assert_eq!(field.exp(1u8), field);
+        assert_eq!(field.exp(2u8), field * field);
+
+        // By Fermat's Little Theorem
+        assert_eq!(field.exp(PRIME - 1), BaseField::one());
     }
 }
