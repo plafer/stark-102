@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1"
+blake3 = "1.4.1"

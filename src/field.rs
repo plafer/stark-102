@@ -96,6 +96,10 @@ impl BaseField {
 
         panic!("log({x}, {base}) doesn't exist");
     }
+
+    pub fn as_byte(&self) -> u8 {
+        self.element
+    }
 }
 
 impl From<u8> for BaseField {
@@ -337,15 +341,18 @@ mod tests {
 
     #[test]
     fn test_group_shift() {
-        assert_eq!(CyclicGroup::new(8).unwrap().elements, vec![
-                    3.into(),
-                    10.into(),
-                    5.into(),
-                    11.into(),
-                    14.into(),
-                    7.into(),
-                    12.into(),
-                    6.into(),
-                ]);
+        assert_eq!(
+            CyclicGroup::new(8).unwrap().elements,
+            vec![
+                3.into(),
+                10.into(),
+                5.into(),
+                11.into(),
+                14.into(),
+                7.into(),
+                12.into(),
+                6.into(),
+            ]
+        );
     }
 }
