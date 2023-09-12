@@ -69,7 +69,7 @@ impl BaseField {
             result *= self;
         }
 
-        return result;
+        result
     }
 
     /// Computes log_{base}(x); or,
@@ -242,6 +242,10 @@ impl CyclicGroup {
 
     pub fn len(&self) -> usize {
         self.elements.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 
     /// Shifts the group by `element`. In other words, this gives the cosets of

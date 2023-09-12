@@ -68,8 +68,7 @@ impl Polynomial {
         }
 
         let interpolated_poly = (0..domain.len())
-            .into_iter()
-            .map(|j| Self::partial_lagrange_poly(j, &domain, evaluations))
+            .map(|j| Self::partial_lagrange_poly(j, domain, evaluations))
             .sum();
 
         Ok(interpolated_poly)
