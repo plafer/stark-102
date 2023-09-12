@@ -144,3 +144,34 @@ pub struct InternalNode {
     parent: Option<Rc<RefCell<Node>>>,
     hash: Hash,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    pub fn test_tree_structure() {
+         let leaves: [BaseField; 4] = [1.into(), 2.into(), 3.into(), 4.into()];
+
+         let tree = MerkleTree::new(&leaves);
+
+        for leaf in tree.leaves {
+            let leaf = leaf.borrow();
+            assert!(leaf.right().is_none());
+            assert!(leaf.left().is_none());
+
+            let parent = leaf.parent().unwrap();
+            let parent = parent.borrow();
+
+            assert!(parent.right().is_some());
+            assert!(parent.left().is_some());
+
+            let root = parent.parent().unwrap();
+            let root = root.borrow();
+
+            assert!(root.right().is_some());
+            assert!(root.left().is_some());
+            assert!(root.parent().is_none());
+        }
+    }
+}
