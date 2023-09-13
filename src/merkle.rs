@@ -34,12 +34,12 @@ impl MerklePath {
 
         while node_runner.borrow().parent().is_some() {
             let current_node = Rc::clone(&node_runner);
-            let (current_node_sibling, sibling_position) = current_node
+            let (maybe_current_node_sibling, sibling_position) = current_node
                 .borrow()
                 .sibling()
                 .ok_or(anyhow!("sibling doesn't exist"))?;
 
-            let current_node_sibling = current_node_sibling.unwrap();
+            let current_node_sibling = maybe_current_node_sibling.unwrap();
 
             path.push((current_node_sibling.borrow().hash(), sibling_position));
 
