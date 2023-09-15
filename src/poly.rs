@@ -58,6 +58,14 @@ impl Polynomial {
         result
     }
 
+    /// Convenience function that evaluates the polynomial over a domain
+    pub fn eval_domain(&self, domain: &[BaseField]) -> Vec<BaseField> {
+        domain
+            .iter()
+            .map(|domain_ele| self.eval(*domain_ele))
+            .collect()
+    }
+
     // https://mathworld.wolfram.com/LagrangeInterpolatingPolynomial.html
     pub fn lagrange_interp(
         domain: &CyclicGroup,
