@@ -5,6 +5,8 @@ use blake3::Hash;
 
 use crate::{field::BaseField, util::is_power_of_2};
 
+pub type MerkleRoot = blake3::Hash;
+
 /// Identifies whether a hash corresponds to the left or right sibling.
 /// This is necessary in order to properly verify an inclusion proof
 #[derive(Debug, PartialEq, Eq)]
