@@ -11,6 +11,7 @@
 // And for the proof, the prover will evaluate `t(x)` for `x` in a coset, s.t.
 // t(x) never needs to be revealed
 
+pub mod channel;
 pub mod constraints;
 pub mod field;
 pub mod merkle;
