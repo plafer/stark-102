@@ -26,6 +26,7 @@ use merkle::MerkleRoot;
 pub struct StarkProof {
     // Commitment phase
     pub trace_lde_commitment: MerkleRoot,
-
+    pub composition_poly_lde_commitment: MerkleRoot, 
+    
     // Query phase
 }
