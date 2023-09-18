@@ -34,7 +34,6 @@ impl Channel {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;

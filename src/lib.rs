@@ -26,7 +26,13 @@ use merkle::MerkleRoot;
 pub struct StarkProof {
     // Commitment phase
     pub trace_lde_commitment: MerkleRoot,
-    pub composition_poly_lde_commitment: MerkleRoot, 
-    
+    pub composition_poly_lde_commitment: MerkleRoot,
+
+    // The composition polynomial has degree 7 (it was interpolated on 8
+    // points). Hence, the first FRI layer has half that degree, and so on until
+    // we're at degree 0.
+    pub fri_layer_deg_3_commitment: MerkleRoot,
+    pub fri_layer_deg_1_commitment: MerkleRoot,
+    pub fri_layer_deg_0_commitment: MerkleRoot,
     // Query phase
 }

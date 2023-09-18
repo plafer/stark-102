@@ -1,6 +1,11 @@
 use crate::{
-    channel::Channel, constraints::composition_polynomial, field::CyclicGroup, merkle::MerkleTree,
-    poly::Polynomial, trace::generate_trace, StarkProof,
+    channel::Channel,
+    constraints::composition_polynomial,
+    field::{BaseField, CyclicGroup},
+    merkle::MerkleTree,
+    poly::Polynomial,
+    trace::generate_trace,
+    StarkProof,
 };
 
 const CHANNEL_SALT: [u8; 1] = [42u8];
@@ -30,8 +35,54 @@ pub fn generate_proof() -> StarkProof {
     let cp_lde = cp.eval_domain(&lde_domain.elements);
     let cp_lde_merkleized = MerkleTree::new(&cp_lde);
 
+    // FRI
+    let beta_fri_deg_3 = channel.random_element();
+    let (domain_deg_3, fri_layer_deg_3) =
+        fri_step(&lde_domain.elements, cp.clone(), beta_fri_deg_3);
+    let fri_layer_deg_3_merkleized = MerkleTree::new(&fri_layer_deg_3.eval_domain(&domain_deg_3));
+
+    let beta_fri_deg_1 = channel.random_element();
+    let (domain_deg_1, fri_layer_deg_1) =
+        fri_step(&domain_deg_3, fri_layer_deg_3.clone(), beta_fri_deg_1);
+    let fri_layer_deg_1_merkleized = MerkleTree::new(&fri_layer_deg_1.eval_domain(&domain_deg_1));
+
+    let beta_fri_deg_0 = channel.random_element();
+    let (domain_deg_0, fri_layer_deg_0) =
+        fri_step(&domain_deg_1, fri_layer_deg_1.clone(), beta_fri_deg_0);
+    let fri_layer_deg_0_merkleized = MerkleTree::new(&fri_layer_deg_0.eval_domain(&domain_deg_0));
+
     StarkProof {
         trace_lde_commitment: trace_lde_merkleized.root,
         composition_poly_lde_commitment: cp_lde_merkleized.root,
+        fri_layer_deg_3_commitment: fri_layer_deg_3_merkleized.root,
+        fri_layer_deg_1_commitment: fri_layer_deg_1_merkleized.root,
+        fri_layer_deg_0_commitment: fri_layer_deg_0_merkleized.root,
     }
+}
+
+// Returns the domain and polynomial of the next FRI layer
+fn fri_step(
+    domain: &[BaseField],
+    polynomial: Polynomial,
+    beta: BaseField,
+) -> (Vec<BaseField>, Polynomial) {
+    // The domain of the next FRI layer is (the first or second) half of the
+    // current domain, where every element is squared. Both the first or second
+    // half squared result in the same domain. For example, given a domain with generator g,
+    //
+    // dom = {g^0, g^1, g^2, g^3}
+    // first_half = {g^0, g^1}
+    // first_half_squared = {g^0, g^2}
+    //
+    // second_half = {g^2, g^3}
+    // second_half_squared = {g^4, g^6} = {g^0, g^2}
+    // ^ The second equality is true because g^4 = 1 (by definition of g being the generator)
+    //
+    // Refer to Stark 101 part 3 for more information.
+    let next_domain = domain[0..domain.len() / 2]
+        .iter()
+        .map(|x| x.exp(2))
+        .collect();
+
+    (next_domain, polynomial.fri_step(beta))
 }
