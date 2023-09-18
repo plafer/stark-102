@@ -11,6 +11,8 @@ use crate::{
 const CHANNEL_SALT: [u8; 1] = [42u8];
 
 pub fn generate_proof() -> StarkProof {
+    let mut channel = Channel::new(&CHANNEL_SALT);
+
     // Trace
     let trace = generate_trace();
     let trace_domain = CyclicGroup::new(4).unwrap();
@@ -20,7 +22,7 @@ pub fn generate_proof() -> StarkProof {
     let trace_lde = trace_polynomial.eval_domain(&lde_domain.elements);
     let trace_lde_merkleized = MerkleTree::new(&trace_lde);
 
-    let mut channel = Channel::new(&CHANNEL_SALT);
+    channel.commit(trace_lde_merkleized.root);
 
     // Composition polynomial
     let cp = {
@@ -35,28 +37,43 @@ pub fn generate_proof() -> StarkProof {
     let cp_lde = cp.eval_domain(&lde_domain.elements);
     let cp_lde_merkleized = MerkleTree::new(&cp_lde);
 
+    channel.commit(cp_lde_merkleized.root);
+
     // FRI
     let beta_fri_deg_3 = channel.random_element();
     let (domain_deg_3, fri_layer_deg_3) =
         fri_step(&lde_domain.elements, cp.clone(), beta_fri_deg_3);
     let fri_layer_deg_3_merkleized = MerkleTree::new(&fri_layer_deg_3.eval_domain(&domain_deg_3));
 
+    channel.commit(fri_layer_deg_3_merkleized.root);
+
     let beta_fri_deg_1 = channel.random_element();
     let (domain_deg_1, fri_layer_deg_1) =
         fri_step(&domain_deg_3, fri_layer_deg_3.clone(), beta_fri_deg_1);
     let fri_layer_deg_1_merkleized = MerkleTree::new(&fri_layer_deg_1.eval_domain(&domain_deg_1));
+
+    channel.commit(fri_layer_deg_1_merkleized.root);
 
     let beta_fri_deg_0 = channel.random_element();
     let (domain_deg_0, fri_layer_deg_0) =
         fri_step(&domain_deg_1, fri_layer_deg_1.clone(), beta_fri_deg_0);
     let fri_layer_deg_0_merkleized = MerkleTree::new(&fri_layer_deg_0.eval_domain(&domain_deg_0));
 
+    channel.commit(fri_layer_deg_0_merkleized.root);
+
+    let commitments = channel.finalize();
+    assert_eq!(
+        commitments.len(),
+        5,
+        "Expected 5 commitments; did we forget to commit a value somewhere?"
+    );
+
     StarkProof {
-        trace_lde_commitment: trace_lde_merkleized.root,
-        composition_poly_lde_commitment: cp_lde_merkleized.root,
-        fri_layer_deg_3_commitment: fri_layer_deg_3_merkleized.root,
-        fri_layer_deg_1_commitment: fri_layer_deg_1_merkleized.root,
-        fri_layer_deg_0_commitment: fri_layer_deg_0_merkleized.root,
+        trace_lde_commitment: commitments[0],
+        composition_poly_lde_commitment: commitments[1],
+        fri_layer_deg_3_commitment: commitments[2],
+        fri_layer_deg_1_commitment: commitments[3],
+        fri_layer_deg_0_commitment: commitments[4],
     }
 }
 
