@@ -5,16 +5,22 @@ use crate::field::BaseField;
 /// A Channel implements the Fiat-Shamir heuristic.
 pub struct Channel {
     current_hash: Hash,
+    count: u64,
+    commitments: Vec<Hash>,
 }
 
 impl Channel {
     pub fn new(salt: &[u8]) -> Self {
         Self {
             current_hash: hash(salt),
+            count: 0,
+            commitments: Vec::new(),
         }
     }
 
     pub fn commit(&mut self, commitment: Hash) {
+        self.commitments.push(commitment);
+
         let mut hasher = Hasher::new();
         hasher.update(self.current_hash.as_bytes());
         hasher.update(commitment.as_bytes());
@@ -28,9 +34,22 @@ impl Channel {
 
         // this is an arbitrary way to change the current hash, so that we can
         // call `random_element()` multiple times and always get a different one
-        self.commit(self.current_hash);
+        {
+            let mut hasher = Hasher::new();
+            hasher.update(self.current_hash.as_bytes());
+            hasher.update(&self.count.to_le_bytes());
+
+            self.count += 1;
+
+            self.current_hash = hasher.finalize();
+        }
 
         ret_element
+    }
+
+    // Closes the channel, returning the commitments to be used in the final StarkProof
+    pub fn finalize(self) -> Vec<Hash> {
+        self.commitments
     }
 }
 
