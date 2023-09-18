@@ -333,7 +333,7 @@ mod tests {
     }
 
     #[test]
-    pub fn fri_step() {
+    pub fn fri_step_deg_3() {
         let poly = Polynomial::new(vec![1.into(), 2.into(), 3.into(), 4.into()]);
         let beta = BaseField::new(7u8);
 
@@ -341,6 +341,16 @@ mod tests {
             BaseField::new(1) + BaseField::new(2) * beta,
             BaseField::new(3) + BaseField::new(4) * beta,
         ]);
+
+        assert_eq!(expected_poly, poly.fri_step(beta));
+    }
+
+    #[test]
+    pub fn fri_step_deg_1() {
+        let poly = Polynomial::new(vec![2.into(), 3.into()]);
+        let beta = BaseField::new(7u8);
+
+        let expected_poly = Polynomial::new(vec![BaseField::new(2) + BaseField::new(3) * beta]);
 
         assert_eq!(expected_poly, poly.fri_step(beta));
     }
