@@ -108,6 +108,36 @@ impl Polynomial {
 
         out_poly
     }
+
+    /// Performs one FRI step on the polynomial.
+    ///
+    /// For example, given initial polynomial
+    ///   p(x) = 5x^3 + 4x^2 + 3x + 7
+    ///
+    /// We generate the two polynomials:
+    ///   even_poly(x) = 4x + 7
+    ///   odd_poly(x) = 5x + 3
+    ///
+    /// And the output polynomial is:
+    ///   output_poly(x) = (4 + 5*beta)x + (7 + 3*beta)
+    ///
+    /// Precondition: The polynomial is not a constant (i.e. only one coefficient).
+    pub fn fri_step(self, beta: BaseField) -> Self {
+        assert!(self.coefficients.len() > 1);
+
+        let even_coeffs: Vec<_> = self.coefficients.clone().into_iter().step_by(2).collect();
+        let odd_coeffs: Vec<_> = self.coefficients.into_iter().skip(1).step_by(2).collect();
+
+        let even_poly = Polynomial::new(even_coeffs);
+        let odd_poly_mul_beta = {
+            let mut odd_poly = Polynomial::new(odd_coeffs);
+            odd_poly.scalar_mul(beta);
+
+            odd_poly
+        };
+
+        even_poly + odd_poly_mul_beta
+    }
 }
 
 impl Add for Polynomial {
@@ -288,7 +318,7 @@ mod tests {
     }
 
     #[test]
-    pub fn test_lagrange_interp() {
+    pub fn lagrange_interp() {
         let domain = CyclicGroup::new(4).unwrap();
         let evaluations: Vec<BaseField> = vec![3.into(), 9.into(), 13.into(), 16.into()];
 
@@ -300,5 +330,18 @@ mod tests {
             interp_poly,
             Polynomial::new(vec![6.into(), 16.into(), 2.into(), 13.into()])
         );
+    }
+
+    #[test]
+    pub fn fri_step() {
+        let poly = Polynomial::new(vec![1.into(), 2.into(), 3.into(), 4.into()]);
+        let beta = BaseField::new(7u8);
+
+        let expected_poly = Polynomial::new(vec![
+            BaseField::new(1) + BaseField::new(2) * beta,
+            BaseField::new(3) + BaseField::new(4) * beta,
+        ]);
+
+        assert_eq!(expected_poly, poly.fri_step(beta));
     }
 }
