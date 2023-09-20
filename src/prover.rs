@@ -13,6 +13,10 @@ const CHANNEL_SALT: [u8; 1] = [42u8];
 pub fn generate_proof() -> StarkProof {
     let mut channel = Channel::new(&CHANNEL_SALT);
 
+    ////////////////////
+    // Commitment phase
+    ////////////////////
+
     // Trace
     let trace = generate_trace();
     let trace_domain = CyclicGroup::new(4).unwrap();
@@ -60,6 +64,11 @@ pub fn generate_proof() -> StarkProof {
     let fri_layer_deg_0_merkleized = MerkleTree::new(&fri_layer_deg_0.eval_domain(&domain_deg_0));
 
     channel.commit(fri_layer_deg_0_merkleized.root);
+
+    ////////////////////
+    // Query phase
+    ////////////////////
+
 
     let commitments = channel.finalize();
     assert_eq!(
