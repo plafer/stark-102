@@ -9,6 +9,14 @@ over prime field with prime 17.
 
 
 # TODO
++ Philosophy: 
+    + Many loops are unrolled, try to give names to all values.
+    + The goal is not to be efficient or use the best algo; just to get the whole STARK idea across from start to finish
+        + e.g. we do lagrange interpolation instead of FFT
+    + Some things are hardcoded (e.g. `CyclicGroup`) when I believe useful.
+        + In the case of cyclic group, if the reader wants to debug things, I
+          believe seeing the values directly can help and free up parts of the
+          brain
 + Explain how this builds on stark 101
     + Stark 101 has no verifier
     + Many details unexplained to focus on the core; we'll focus on those here
