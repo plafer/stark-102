@@ -2,10 +2,10 @@ use crate::{
     channel::Channel,
     constraints::composition_polynomial,
     field::{BaseField, CyclicGroup},
-    merkle::MerkleTree,
+    merkle::{MerklePath, MerkleTree},
     poly::Polynomial,
     trace::generate_trace,
-    StarkProof,
+    ProofQueryPhase, StarkProof,
 };
 
 const CHANNEL_SALT: [u8; 1] = [42u8];
@@ -69,6 +69,27 @@ pub fn generate_proof() -> StarkProof {
     // Query phase
     ////////////////////
 
+    // Note: We will need to send (extended) trace elements at index i and i+2.
+    // Since our (extended) trace has 8 elements, we draw i to be between [0,
+    // 7].
+    //
+    // Let's see why that is. Let g be the generator of the trace domain (size
+    // of 4), and w be the generator of the LDE domain (size of 8). We know g=13
+    // and w=9. We notice that g = w^2. Let's say we draw index i, to give us
+    // the trace element `t(hw^i)`, where `h=3` is the shift element to give us
+    // the coset (see `CyclicGroup`). We want to know the index of `t(g *
+    // hw^i)`. We have that `t(ghw^i) = t(w^2 * h * w^i) = t(h * w^(i+2))`, so
+    // the index is `i+2`.
+
+    let query_idx = channel.random_integer(8 - 2) as usize;
+
+    let t_x = trace_lde[query_idx];
+    let t_x_proof = MerklePath::new(&trace_lde_merkleized, query_idx)
+        .expect("query index is between 0 and 5, and Merkle tree has 8 elements");
+
+    let t_gx = trace_lde[query_idx + 2];
+    let t_gx_proof = MerklePath::new(&trace_lde_merkleized, query_idx + 2)
+        .expect("query index is between 2 and 7, and Merkle tree has 8 elements");
 
     let commitments = channel.finalize();
     assert_eq!(
@@ -83,6 +104,10 @@ pub fn generate_proof() -> StarkProof {
         fri_layer_deg_3_commitment: commitments[2],
         fri_layer_deg_1_commitment: commitments[3],
         fri_layer_deg_0_commitment: commitments[4],
+        query_phase: ProofQueryPhase {
+            trace_element: (t_x, t_x_proof),
+            next_trace_element: (t_gx, t_gx_proof),
+        },
     }
 }
 

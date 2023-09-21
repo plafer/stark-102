@@ -9,12 +9,13 @@ pub type MerkleRoot = blake3::Hash;
 
 /// Identifies whether a hash corresponds to the left or right sibling.
 /// This is necessary in order to properly verify an inclusion proof
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SiblingPosition {
     Left,
     Right,
 }
 
+#[derive(Debug, Clone)]
 pub struct MerklePath {
     /// Hashes starting from the leaf to right below the root (<hash>, Left)
     /// means that our sibling has hash <hash>, and is the left child of our

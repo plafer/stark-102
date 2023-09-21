@@ -20,7 +20,8 @@ pub mod prover;
 pub mod trace;
 pub mod util;
 
-use merkle::MerkleRoot;
+use field::BaseField;
+use merkle::{MerklePath, MerkleRoot};
 
 #[derive(Clone, Debug)]
 pub struct StarkProof {
@@ -34,5 +35,18 @@ pub struct StarkProof {
     pub fri_layer_deg_3_commitment: MerkleRoot,
     pub fri_layer_deg_1_commitment: MerkleRoot,
     pub fri_layer_deg_0_commitment: MerkleRoot,
-    // Query phase
+
+    // TODO Q: add explicitly the constant element of last layer? They do in Stark 101.
+
+    pub query_phase: ProofQueryPhase,
+}
+
+/// Our STARK proof only supports one query. However, in production systems, we
+/// want to do more than one query to increase the security of the system.
+#[derive(Clone, Debug)]
+pub struct ProofQueryPhase {
+    // TODO Q: How does verifier ensure that this is the queried element (i.e. at the
+    // expected index)? Note: Not discussed in Stark 101.
+    pub trace_element: (BaseField, MerklePath),
+    pub next_trace_element: (BaseField, MerklePath),
 }
