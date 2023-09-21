@@ -87,13 +87,13 @@ pub fn generate_proof() -> StarkProof {
 
     let query_idx = channel.random_integer(8 - 2) as usize;
 
-    let t_x = trace_lde[query_idx];
-    let t_x_proof = MerklePath::new(&trace_lde_merkleized, query_idx)
-        .expect("query index is between 0 and 5, and Merkle tree has 8 elements");
-
-    let t_gx = trace_lde[query_idx + 2];
-    let t_gx_proof = MerklePath::new(&trace_lde_merkleized, query_idx + 2)
-        .expect("query index is between 2 and 7, and Merkle tree has 8 elements");
+    let query_phase = generate_query_phase(
+        query_idx,
+        &trace_lde,
+        &trace_lde_merkleized,
+        &cp_lde,
+        &cp_lde_merkleized,
+    );
 
     let commitments = channel.finalize();
     assert_eq!(
@@ -108,10 +108,7 @@ pub fn generate_proof() -> StarkProof {
         fri_layer_deg_3_commitment: commitments[2],
         fri_layer_deg_1_commitment: commitments[3],
         fri_layer_deg_0_commitment: commitments[4],
-        query_phase: ProofQueryPhase {
-            trace_x: (t_x, t_x_proof),
-            trace_gx: (t_gx, t_gx_proof),
-        },
+        query_phase,
     }
 }
 
@@ -140,4 +137,38 @@ fn fri_step(
         .collect();
 
     (next_domain, polynomial.fri_step(beta))
+}
+
+fn generate_query_phase(
+    query_idx: usize,
+    trace_lde: &[BaseField],
+    trace_lde_merkleized: &MerkleTree,
+    cp_lde: &[BaseField],
+    cp_lde_merkleized: &MerkleTree,
+) -> ProofQueryPhase {
+    let t_x = trace_lde[query_idx];
+    let t_x_proof = MerklePath::new(trace_lde_merkleized, query_idx)
+        .expect("query index is between 0 and 5, and Merkle tree has 8 elements");
+
+    let t_gx = trace_lde[query_idx + 2];
+    let t_gx_proof = MerklePath::new(trace_lde_merkleized, query_idx + 2)
+        .expect("query index is between 2 and 7, and Merkle tree has 8 elements");
+
+    let cp_x = cp_lde[query_idx];
+    let cp_x_proof = MerklePath::new(cp_lde_merkleized, query_idx).unwrap();
+    let (cp_minus_x, cp_minus_x_proof) = {
+        let query_idx_minus_x = (query_idx + 4) % 8;
+
+        (
+            cp_lde[query_idx_minus_x],
+            MerklePath::new(cp_lde_merkleized, query_idx_minus_x).unwrap(),
+        )
+    };
+
+    ProofQueryPhase {
+        trace_x: (t_x, t_x_proof),
+        trace_gx: (t_gx, t_gx_proof),
+        cp_x: (cp_x, cp_x_proof),
+        cp_minus_x: (cp_minus_x, cp_minus_x_proof),
+    }
 }

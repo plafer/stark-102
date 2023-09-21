@@ -37,7 +37,6 @@ pub struct StarkProof {
     pub fri_layer_deg_0_commitment: MerkleRoot,
 
     // TODO Q: add explicitly the constant element of last layer? They do in Stark 101.
-
     pub query_phase: ProofQueryPhase,
 }
 
@@ -53,4 +52,10 @@ pub struct ProofQueryPhase {
 
     // trace(gx); where g is the generator for the original domain (size 4)
     pub trace_gx: (BaseField, MerklePath),
+
+    // composition_polynomial(x)
+    pub cp_x: (BaseField, MerklePath),
+
+    // composition_polynomial(-x)
+    pub cp_minus_x: (BaseField, MerklePath),
 }
