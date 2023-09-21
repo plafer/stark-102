@@ -109,8 +109,8 @@ pub fn generate_proof() -> StarkProof {
         fri_layer_deg_1_commitment: commitments[3],
         fri_layer_deg_0_commitment: commitments[4],
         query_phase: ProofQueryPhase {
-            trace_element: (t_x, t_x_proof),
-            next_trace_element: (t_gx, t_gx_proof),
+            trace_x: (t_x, t_x_proof),
+            trace_gx: (t_gx, t_gx_proof),
         },
     }
 }
