@@ -49,23 +49,26 @@ pub fn generate_proof() -> StarkProof {
 
     // FRI
     let beta_fri_deg_3 = channel.random_element();
-    let (domain_deg_3, fri_layer_deg_3) =
+    let (domain_deg_3, fri_layer_deg_3_poly) =
         fri_step(&lde_domain.elements, cp.clone(), beta_fri_deg_3);
-    let fri_layer_deg_3_merkleized = MerkleTree::new(&fri_layer_deg_3.eval_domain(&domain_deg_3));
+    let fri_layer_deg_3_eval = fri_layer_deg_3_poly.eval_domain(&domain_deg_3);
+    let fri_layer_deg_3_merkleized = MerkleTree::new(&fri_layer_deg_3_eval);
 
     channel.commit(fri_layer_deg_3_merkleized.root);
 
     let beta_fri_deg_1 = channel.random_element();
-    let (domain_deg_1, fri_layer_deg_1) =
-        fri_step(&domain_deg_3, fri_layer_deg_3.clone(), beta_fri_deg_1);
-    let fri_layer_deg_1_merkleized = MerkleTree::new(&fri_layer_deg_1.eval_domain(&domain_deg_1));
+    let (domain_deg_1, fri_layer_deg_1_poly) =
+        fri_step(&domain_deg_3, fri_layer_deg_3_poly.clone(), beta_fri_deg_1);
+    let fri_layer_deg_1_eval = fri_layer_deg_1_poly.eval_domain(&domain_deg_1);
+    let fri_layer_deg_1_merkleized = MerkleTree::new(&fri_layer_deg_1_eval);
 
     channel.commit(fri_layer_deg_1_merkleized.root);
 
     let beta_fri_deg_0 = channel.random_element();
-    let (domain_deg_0, fri_layer_deg_0) =
-        fri_step(&domain_deg_1, fri_layer_deg_1.clone(), beta_fri_deg_0);
-    let fri_layer_deg_0_merkleized = MerkleTree::new(&fri_layer_deg_0.eval_domain(&domain_deg_0));
+    let (domain_deg_0, fri_layer_deg_0_poly) =
+        fri_step(&domain_deg_1, fri_layer_deg_1_poly.clone(), beta_fri_deg_0);
+    let fri_layer_deg_0_eval = fri_layer_deg_0_poly.eval_domain(&domain_deg_0);
+    let fri_layer_deg_0_merkleized = MerkleTree::new(&fri_layer_deg_0_eval);
 
     channel.commit(fri_layer_deg_0_merkleized.root);
 
@@ -93,6 +96,12 @@ pub fn generate_proof() -> StarkProof {
         &trace_lde_merkleized,
         &cp_lde,
         &cp_lde_merkleized,
+        &fri_layer_deg_3_eval,
+        &fri_layer_deg_3_merkleized,
+        &fri_layer_deg_1_eval,
+        &fri_layer_deg_1_merkleized,
+        &fri_layer_deg_0_eval,
+        &fri_layer_deg_0_merkleized,
     );
 
     let commitments = channel.finalize();
@@ -139,12 +148,19 @@ fn fri_step(
     (next_domain, polynomial.fri_step(beta))
 }
 
+#[allow(clippy::too_many_arguments)]
 fn generate_query_phase(
     query_idx: usize,
     trace_lde: &[BaseField],
     trace_lde_merkleized: &MerkleTree,
     cp_lde: &[BaseField],
     cp_lde_merkleized: &MerkleTree,
+    fri_layer_deg_3_eval: &[BaseField],
+    fri_layer_deg_3_merkleized: &MerkleTree,
+    fri_layer_deg_1_eval: &[BaseField],
+    fri_layer_deg_1_merkleized: &MerkleTree,
+    fri_layer_deg_0_eval: &[BaseField],
+    fri_layer_deg_0_merkleized: &MerkleTree,
 ) -> ProofQueryPhase {
     let t_x = trace_lde[query_idx];
     let t_x_proof = MerklePath::new(trace_lde_merkleized, query_idx)
@@ -154,6 +170,7 @@ fn generate_query_phase(
     let t_gx_proof = MerklePath::new(trace_lde_merkleized, query_idx + 2)
         .expect("query index is between 2 and 7, and Merkle tree has 8 elements");
 
+    // Query composition polynomial
     let cp_x = cp_lde[query_idx];
     let cp_x_proof = MerklePath::new(cp_lde_merkleized, query_idx).unwrap();
     let (cp_minus_x, cp_minus_x_proof) = {
@@ -165,10 +182,54 @@ fn generate_query_phase(
         )
     };
 
+    // Query FRI layer of degree 3
+    let query_idx_fri_3_x = query_idx / 2;
+
+    let fri_layer_deg_3_x = fri_layer_deg_3_eval[query_idx_fri_3_x];
+    let fri_layer_deg_3_x_proof =
+        MerklePath::new(fri_layer_deg_3_merkleized, query_idx_fri_3_x).unwrap();
+
+    let (fri_layer_deg_3_minus_x, fri_layer_deg_3_minus_x_proof) = {
+        let query_idx_fri_3_minus_x = (query_idx_fri_3_x + 2) % 4;
+
+        (
+            fri_layer_deg_3_eval[query_idx_fri_3_minus_x],
+            MerklePath::new(fri_layer_deg_3_merkleized, query_idx_fri_3_minus_x).unwrap(),
+        )
+    };
+
+    // Query FRI layer of degree 1
+    let query_idx_fri_1_x = query_idx_fri_3_x / 2;
+
+    let fri_layer_deg_1_x = fri_layer_deg_1_eval[query_idx_fri_1_x];
+    let fri_layer_deg_1_x_proof =
+        MerklePath::new(fri_layer_deg_1_merkleized, query_idx_fri_1_x).unwrap();
+
+    let (fri_layer_deg_1_minus_x, fri_layer_deg_1_minus_x_proof) = {
+        let query_idx_fri_1_minus_x = (query_idx_fri_1_x + 2) % 4;
+
+        (
+            fri_layer_deg_1_eval[query_idx_fri_1_minus_x],
+            MerklePath::new(fri_layer_deg_1_merkleized, query_idx_fri_1_minus_x).unwrap(),
+        )
+    };
+
+    // Query FRI layer of degree 0
+    let query_idx_fri_0_x = query_idx_fri_1_x / 2;
+
+    let fri_layer_deg_0_x = fri_layer_deg_0_eval[query_idx_fri_0_x];
+    let fri_layer_deg_0_x_proof =
+        MerklePath::new(fri_layer_deg_0_merkleized, query_idx_fri_0_x).unwrap();
+
     ProofQueryPhase {
         trace_x: (t_x, t_x_proof),
         trace_gx: (t_gx, t_gx_proof),
         cp_x: (cp_x, cp_x_proof),
         cp_minus_x: (cp_minus_x, cp_minus_x_proof),
+        fri_layer_deg_3_x: (fri_layer_deg_3_x, fri_layer_deg_3_x_proof),
+        fri_layer_deg_3_minus_x: (fri_layer_deg_3_minus_x, fri_layer_deg_3_minus_x_proof),
+        fri_layer_deg_1_x: (fri_layer_deg_1_x, fri_layer_deg_1_x_proof),
+        fri_layer_deg_1_minus_x: (fri_layer_deg_1_minus_x, fri_layer_deg_1_minus_x_proof),
+        fri_layer_deg_0_x: (fri_layer_deg_0_x, fri_layer_deg_0_x_proof),
     }
 }

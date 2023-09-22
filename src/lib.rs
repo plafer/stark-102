@@ -55,7 +55,25 @@ pub struct ProofQueryPhase {
 
     // composition_polynomial(x)
     pub cp_x: (BaseField, MerklePath),
-
     // composition_polynomial(-x)
     pub cp_minus_x: (BaseField, MerklePath),
+
+    // FIXME: Stark 101 sends these values in the channel. Is this necessary?
+    // Does winterfell do that? Why/why not?
+
+    // fri_layer_deg_3_eval(x^2)
+    pub fri_layer_deg_3_x: (BaseField, MerklePath),
+    // fri_layer_deg_3_eval(-x^2)
+    pub fri_layer_deg_3_minus_x: (BaseField, MerklePath),
+
+    // fri_layer_deg_1_eval(x^4)
+    pub fri_layer_deg_1_x: (BaseField, MerklePath),
+    // fri_layer_deg_1_eval(-x^4)
+    pub fri_layer_deg_1_minus_x: (BaseField, MerklePath),
+
+    // FIXME: Stark 101 (and winterfell I think?) don't send a commitment for
+    // degree 0. Confirm. 
+
+    // fri_layer_deg_0_eval(x^8)
+    pub fri_layer_deg_0_x: (BaseField, MerklePath),
 }
