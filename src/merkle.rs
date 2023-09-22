@@ -51,6 +51,31 @@ impl MerklePath {
 
         Ok(Self { path })
     }
+
+    pub fn verify_inclusion(&self, element: BaseField, root: MerkleRoot) -> bool {
+        let mut current_hash = blake3::hash(&[element.as_byte()]);
+
+        for (sibling_hash, sibling_position) in &self.path {
+            current_hash = match sibling_position {
+                SiblingPosition::Left => {
+                    // sibling hash comes first
+                    let mut hasher = blake3::Hasher::new();
+                    hasher.update(sibling_hash.as_bytes());
+                    hasher.update(current_hash.as_bytes());
+                    hasher.finalize()
+                }
+                SiblingPosition::Right => {
+                    // sibling hash comes second
+                    let mut hasher = blake3::Hasher::new();
+                    hasher.update(current_hash.as_bytes());
+                    hasher.update(sibling_hash.as_bytes());
+                    hasher.finalize()
+                }
+            }
+        }
+
+        root == current_hash
+    }
 }
 
 /// A Merkle tree implementation that uses blake3 as a hashing function
@@ -117,31 +142,6 @@ impl MerkleTree {
             leaves,
             root: root_node.hash(),
         }
-    }
-
-    pub fn verify_inclusion(&self, element: BaseField, path: MerklePath) -> bool {
-        let mut current_hash = blake3::hash(&[element.as_byte()]);
-
-        for (sibling_hash, sibling_position) in path.path {
-            current_hash = match sibling_position {
-                SiblingPosition::Left => {
-                    // sibling hash comes first
-                    let mut hasher = blake3::Hasher::new();
-                    hasher.update(sibling_hash.as_bytes());
-                    hasher.update(current_hash.as_bytes());
-                    hasher.finalize()
-                }
-                SiblingPosition::Right => {
-                    // sibling hash comes second
-                    let mut hasher = blake3::Hasher::new();
-                    hasher.update(current_hash.as_bytes());
-                    hasher.update(sibling_hash.as_bytes());
-                    hasher.finalize()
-                }
-            }
-        }
-
-        self.root == current_hash
     }
 }
 
@@ -316,6 +316,6 @@ mod tests {
 
         let merkle_path = MerklePath::new(&tree, 3).unwrap();
 
-        assert!(tree.verify_inclusion(4.into(), merkle_path));
+        assert!(merkle_path.verify_inclusion(4.into(), tree.root));
     }
 }
