@@ -2,6 +2,10 @@ use blake3::{hash, Hash, Hasher};
 
 use crate::field::BaseField;
 
+/// The value to use to initialize the randomness of the channel. Normally, the
+/// channel is initialized with the public inputs, but we don't have any.
+const CHANNEL_SALT: [u8; 1] = [42u8];
+
 /// A Channel implements the Fiat-Shamir heuristic.
 pub struct Channel {
     current_hash: Hash,
@@ -10,9 +14,9 @@ pub struct Channel {
 }
 
 impl Channel {
-    pub fn new(salt: &[u8]) -> Self {
+    pub fn new() -> Self {
         Self {
-            current_hash: hash(salt),
+            current_hash: hash(&CHANNEL_SALT),
             count: 0,
             commitments: Vec::new(),
         }
@@ -73,7 +77,7 @@ mod tests {
     // Get a few random elements and make sure they're different
     #[test]
     pub fn test_random_element() {
-        let mut channel = Channel::new(&[42u8]);
+        let mut channel = Channel::new();
 
         let r1 = channel.random_element();
         let r2 = channel.random_element();

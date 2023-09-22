@@ -19,9 +19,11 @@ pub mod poly;
 pub mod prover;
 pub mod trace;
 pub mod util;
+pub mod verifier;
 
 use field::BaseField;
 use merkle::{MerklePath, MerkleRoot};
+
 
 #[derive(Clone, Debug)]
 pub struct StarkProof {

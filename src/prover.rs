@@ -8,10 +8,8 @@ use crate::{
     ProofQueryPhase, StarkProof,
 };
 
-const CHANNEL_SALT: [u8; 1] = [42u8];
-
 pub fn generate_proof() -> StarkProof {
-    let mut channel = Channel::new(&CHANNEL_SALT);
+    let mut channel = Channel::new();
 
     ////////////////////
     // Commitment phase
