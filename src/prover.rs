@@ -28,12 +28,10 @@ pub fn generate_proof() -> StarkProof {
 
     // Composition polynomial
     let cp = {
+        let alpha_0 = channel.random_element();
         let alpha_1 = channel.random_element();
-        let beta_1 = channel.random_element();
-        let alpha_2 = channel.random_element();
-        let beta_2 = channel.random_element();
 
-        composition_polynomial(alpha_1, beta_1, alpha_2, beta_2)
+        composition_polynomial(alpha_0, alpha_1)
     };
 
     let cp_lde = cp.eval_domain(&lde_domain.elements);

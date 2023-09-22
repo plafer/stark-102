@@ -22,20 +22,16 @@ fn transition_constraint() -> Polynomial {
     Polynomial::new(vec![16.into(), 9.into(), 12.into(), 1.into()])
 }
 
-/// For definition of alphas and betas, refer to
-/// [here](https://blog.lambdaclass.com/diving-deep-fri#the-constraint-composition-polynomial)
-pub fn composition_polynomial(
-    alpha_1: BaseField,
-    beta_1: BaseField,
-    alpha_2: BaseField,
-    beta_2: BaseField,
-) -> Polynomial {
-    // alpha_1 * x^2 + beta_1
-    let random_poly_boundary = Polynomial::new(vec![beta_1, 0.into(), alpha_1]);
+/// Note that we construct our composition polynomial as they do in Stark 101
+/// (i.e. by taking a random linear combination of the boundary and transition
+/// constraint polynomials) as opposed to what they do in
+/// [the lambdaclass blog post](https://blog.lambdaclass.com/diving-deep-fri#the-constraint-composition-polynomial)
+pub fn composition_polynomial(alpha_0: BaseField, alpha_1: BaseField) -> Polynomial {
+    let mut p0 = boundary_constraint();
+    p0.scalar_mul(alpha_0);
 
-    // alpha_2 * x + beta_2
-    let random_poly_transition = Polynomial::new(vec![beta_2, alpha_2]);
+    let mut p1 = transition_constraint();
+    p1.scalar_mul(alpha_1);
 
-    (boundary_constraint() * random_poly_boundary)
-        + (transition_constraint() * random_poly_transition)
+    p0 + p1
 }

@@ -24,7 +24,6 @@ pub mod verifier;
 use field::BaseField;
 use merkle::{MerklePath, MerkleRoot};
 
-
 #[derive(Clone, Debug)]
 pub struct StarkProof {
     // Commitment phase
