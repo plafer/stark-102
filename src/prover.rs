@@ -67,10 +67,8 @@ pub fn generate_proof() -> StarkProof {
     let beta_fri_deg_0 = channel.random_element();
     let (domain_deg_0, fri_layer_deg_0_poly) =
         fri_step(&domain_deg_1, fri_layer_deg_1_poly.clone(), beta_fri_deg_0);
-    let fri_layer_deg_0_eval = fri_layer_deg_0_poly.eval_domain(&domain_deg_0);
-    let fri_layer_deg_0_merkleized = MerkleTree::new(&fri_layer_deg_0_eval);
-
-    channel.commit(fri_layer_deg_0_merkleized.root);
+    assert_eq!(domain_deg_0.len(), 1);
+    let fri_layer_deg_0_eval = fri_layer_deg_0_poly.eval(domain_deg_0[0]);
 
     ////////////////////
     // Query phase
@@ -100,15 +98,15 @@ pub fn generate_proof() -> StarkProof {
         &fri_layer_deg_3_merkleized,
         &fri_layer_deg_1_eval,
         &fri_layer_deg_1_merkleized,
-        &fri_layer_deg_0_eval,
-        &fri_layer_deg_0_merkleized,
+        fri_layer_deg_0_eval,
     );
 
     let commitments = channel.finalize();
     assert_eq!(
         commitments.len(),
-        5,
-        "Expected 5 commitments; did we forget to commit a value somewhere?"
+        4,
+        "Expected 4 commitments, got {}",
+        commitments.len()
     );
 
     StarkProof {
@@ -116,7 +114,6 @@ pub fn generate_proof() -> StarkProof {
         composition_poly_lde_commitment: commitments[1],
         fri_layer_deg_3_commitment: commitments[2],
         fri_layer_deg_1_commitment: commitments[3],
-        fri_layer_deg_0_commitment: commitments[4],
         query_phase,
     }
 }
@@ -159,8 +156,7 @@ fn generate_query_phase(
     fri_layer_deg_3_merkleized: &MerkleTree,
     fri_layer_deg_1_eval: &[BaseField],
     fri_layer_deg_1_merkleized: &MerkleTree,
-    fri_layer_deg_0_eval: &[BaseField],
-    fri_layer_deg_0_merkleized: &MerkleTree,
+    fri_layer_deg_0_eval: BaseField,
 ) -> ProofQueryPhase {
     let t_x = trace_lde[query_idx];
     let t_x_proof = MerklePath::new(trace_lde_merkleized, query_idx)
@@ -216,10 +212,7 @@ fn generate_query_phase(
 
     // Query FRI layer of degree 0
     let query_idx_fri_0_x = query_idx_fri_1_x / 2;
-
-    let fri_layer_deg_0_x = fri_layer_deg_0_eval[query_idx_fri_0_x];
-    let fri_layer_deg_0_x_proof =
-        MerklePath::new(fri_layer_deg_0_merkleized, query_idx_fri_0_x).unwrap();
+    assert_eq!(query_idx_fri_0_x, 0);
 
     ProofQueryPhase {
         trace_x: (t_x, t_x_proof),
@@ -230,6 +223,6 @@ fn generate_query_phase(
         fri_layer_deg_3_minus_x: (fri_layer_deg_3_minus_x, fri_layer_deg_3_minus_x_proof),
         fri_layer_deg_1_x: (fri_layer_deg_1_x, fri_layer_deg_1_x_proof),
         fri_layer_deg_1_minus_x: (fri_layer_deg_1_minus_x, fri_layer_deg_1_minus_x_proof),
-        fri_layer_deg_0_x: (fri_layer_deg_0_x, fri_layer_deg_0_x_proof),
+        fri_layer_deg_0_x: fri_layer_deg_0_eval,
     }
 }

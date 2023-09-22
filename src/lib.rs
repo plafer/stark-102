@@ -31,10 +31,13 @@ pub struct StarkProof {
 
     // The composition polynomial has degree 7 (it was interpolated on 8
     // points). Hence, the first FRI layer has half that degree, and so on until
-    // we're at degree 0.
+    // we're at degree 1. The last layer (degree 0) has only 1 element, and
+    // hence doesn't need a Merkle tree. That is, the Merkle root would be the
+    // value's hash, and when the value is queried in the query phase, we would
+    // send along its hash, which doesn't provide any additional useful
+    // information to the verifier.
     pub fri_layer_deg_3_commitment: MerkleRoot,
     pub fri_layer_deg_1_commitment: MerkleRoot,
-    pub fri_layer_deg_0_commitment: MerkleRoot,
 
     // TODO Q: add explicitly the constant element of last layer? They do in Stark 101.
     pub query_phase: ProofQueryPhase,
@@ -72,8 +75,8 @@ pub struct ProofQueryPhase {
     pub fri_layer_deg_1_minus_x: (BaseField, MerklePath),
 
     // FIXME: Stark 101 (and winterfell I think?) don't send a commitment for
-    // degree 0. Confirm. 
+    // degree 0. Confirm.
 
     // fri_layer_deg_0_eval(x^8)
-    pub fri_layer_deg_0_x: (BaseField, MerklePath),
+    pub fri_layer_deg_0_x: BaseField,
 }
