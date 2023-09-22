@@ -7,6 +7,7 @@ use crate::field::BaseField;
 const CHANNEL_SALT: [u8; 1] = [42u8];
 
 /// A Channel implements the Fiat-Shamir heuristic.
+#[derive(Debug)]
 pub struct Channel {
     current_hash: Hash,
     count: u64,

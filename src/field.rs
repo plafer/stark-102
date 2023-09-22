@@ -112,8 +112,14 @@ impl From<i32> for BaseField {
     fn from(num: i32) -> Self {
         // Note: We do this because e.g. -1 % 17 = -1.
         // We then instead do 16 % 17 = 16
-        let adjusted_num = num + PRIME as i32;
-        Self::new((adjusted_num % (PRIME as i32)) as u8)
+
+        // This brings the number in the (-17, 17) range
+        let num = num % PRIME as i32;
+
+        // This brings the number in the [0, 17*2) range
+        let num = num + PRIME as i32;
+
+        Self::new(num as u8)
     }
 }
 
@@ -271,8 +277,10 @@ mod tests {
     #[test]
     fn test_from_i32() {
         let ele = BaseField::from(-1);
-
         assert_eq!(ele, BaseField::new(16u8));
+
+        let ele = BaseField::from(-100);
+        assert_eq!(ele, BaseField::new(2u8));
     }
 
     #[test]
