@@ -83,3 +83,15 @@ pub struct ProofQueryPhase {
     // fri_layer_deg_0_eval(x^8)
     pub fri_layer_deg_0_x: BaseField,
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{prover::generate_proof, verifier};
+
+    #[test]
+    pub fn proof_verification() {
+        let proof = generate_proof();
+
+        assert!(verifier::verify(&proof).is_ok());
+    }
+}
