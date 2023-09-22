@@ -56,6 +56,8 @@ pub struct ProofQueryPhase {
     // trace(gx); where g is the generator for the original domain (size 4)
     pub trace_gx: (BaseField, MerklePath),
 
+    // TODO: Remove the `*_x` values below. The verifier computes them, so we don't need to send them over.
+
     // composition_polynomial(x)
     pub cp_x: (BaseField, MerklePath),
     // composition_polynomial(-x)
