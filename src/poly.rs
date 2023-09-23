@@ -37,6 +37,7 @@ impl Polynomial {
         self.coefficients.len() - 1
     }
 
+    // TODO: impl Div<BaseField> instead
     pub fn scalar_div(&mut self, x: BaseField) {
         *self *= x.mult_inv();
     }
