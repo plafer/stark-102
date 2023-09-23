@@ -37,15 +37,8 @@ impl Polynomial {
         self.coefficients.len() - 1
     }
 
-    // TODO: impl Mul<BaseField> for Polynomial instead
-    pub fn scalar_mul(&mut self, x: BaseField) {
-        let scalar_mul_poly = Self::new(vec![x]);
-
-        *self *= scalar_mul_poly;
-    }
-
     pub fn scalar_div(&mut self, x: BaseField) {
-        self.scalar_mul(x.mult_inv())
+        *self *= x.mult_inv();
     }
 
     /// Evaluates the polynomial at `x`
@@ -103,8 +96,7 @@ impl Polynomial {
             (numerator, denominator)
         };
 
-        let mut out_poly = numerator;
-        out_poly.scalar_mul(y_j);
+        let mut out_poly = numerator * y_j;
         out_poly.scalar_div(denominator);
 
         out_poly
@@ -134,14 +126,9 @@ impl Polynomial {
         let odd_coeffs: Vec<_> = self.coefficients.into_iter().skip(1).step_by(2).collect();
 
         let even_poly = Polynomial::new(even_coeffs);
-        let odd_poly_mul_beta = {
-            let mut odd_poly = Polynomial::new(odd_coeffs);
-            odd_poly.scalar_mul(beta);
+        let odd_poly = Polynomial::new(odd_coeffs);
 
-            odd_poly
-        };
-
-        even_poly + odd_poly_mul_beta
+        even_poly + (odd_poly * beta)
     }
 }
 
@@ -213,6 +200,24 @@ impl Mul for Polynomial {
         Self {
             coefficients: mul_coeffs,
         }
+    }
+}
+
+impl Mul<BaseField> for Polynomial {
+    type Output = Self;
+
+    fn mul(self, rhs: BaseField) -> Self::Output {
+        // To multiply by a scalar, we create a degree-0 polynomial, and use
+        // polynomial multiplication
+        let scalar_mul_poly = Self::new(vec![rhs]);
+
+        self * scalar_mul_poly
+    }
+}
+
+impl MulAssign<BaseField> for Polynomial {
+    fn mul_assign(&mut self, rhs: BaseField) {
+        *self = self.clone() * rhs;
     }
 }
 

@@ -27,11 +27,5 @@ fn transition_constraint() -> Polynomial {
 /// constraint polynomials) as opposed to what they do in
 /// [the lambdaclass blog post](https://blog.lambdaclass.com/diving-deep-fri#the-constraint-composition-polynomial)
 pub fn composition_polynomial(alpha_0: BaseField, alpha_1: BaseField) -> Polynomial {
-    let mut p0 = boundary_constraint();
-    p0.scalar_mul(alpha_0);
-
-    let mut p1 = transition_constraint();
-    p1.scalar_mul(alpha_1);
-
-    p0 + p1
+    boundary_constraint() * alpha_0 + transition_constraint() * alpha_1
 }
