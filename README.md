@@ -29,3 +29,9 @@ over prime field with prime 17.
     + blowup factor: the domain size multiplier during LDE (here: 2)
     + folding factor: by how much you divide in-between each FRI layer (here: 2)
 + Explain the Scalable and Transparent parts
++ Talk about the channel
+    + Notably, the pseudorandom params are *not* in the `StarkProof` struct; they're rederived by the verifier.
++ The verifier checks the evaluation *at a point* (the "query point")
+    + Give the intuition why this works (LDE, etc)
+    + to increase security, do more queries
++ Make `3` a public param?

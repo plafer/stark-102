@@ -1,6 +1,10 @@
 use anyhow::bail;
 
-use crate::{channel::Channel, StarkProof};
+use crate::{
+    channel::Channel,
+    field::{BaseField, CyclicGroup},
+    ProofQueryPhase, StarkProof,
+};
 
 pub fn verify(stark_proof: &StarkProof) -> anyhow::Result<()> {
     let mut channel = Channel::new();
@@ -25,9 +29,14 @@ pub fn verify(stark_proof: &StarkProof) -> anyhow::Result<()> {
     // struct are valid.
     verify_merkle_proofs(stark_proof)?;
 
-    // TODO: verify query
-
-    todo!()
+    verify_query(
+        &stark_proof.query_phase,
+        alpha_0,
+        alpha_1,
+        beta_fri_deg_1,
+        beta_fri_deg_0,
+        query_idx,
+    )
 }
 
 fn verify_merkle_proofs(stark_proof: &StarkProof) -> anyhow::Result<()> {
@@ -86,4 +95,40 @@ fn verify_merkle_proofs(stark_proof: &StarkProof) -> anyhow::Result<()> {
     }
 
     Ok(())
+}
+
+fn verify_query(
+    queries: &ProofQueryPhase,
+    alpha_0: BaseField,
+    alpha_1: BaseField,
+    beta_fri_deg_1: BaseField,
+    beta_fri_deg_0: BaseField,
+    query_idx: usize,
+) -> anyhow::Result<()> {
+    let domain_lde = CyclicGroup::new(8)?;
+    let x = domain_lde.elements[query_idx];
+
+    // Ensure that the composition polynomial value is actually derived from the trace
+    let C1_x: BaseField = {
+        // FIXME: Don't hardcode `3` and `1`. Make it explicit in code what they are.
+
+        // `3` is the first value of the trace; this is part of the problem
+        // definition, and agreed upon by the prover and verifier
+        let p1_x = queries.trace_x.0 - BaseField::from(3);
+
+        // `1` is the first value of the original domain.
+        p1_x / (x - 1.into())
+    };
+
+    let C2_x: BaseField = {
+        let p2_x = queries.trace_gx.0 - queries.trace_x.0.exp(2);
+
+        let denom = (x - 1.into()) * (x - 13.into()) * (x - 16.into());
+
+        p2_x / denom
+    };
+
+    // composition_polynomial(x)
+
+    todo!()
 }
