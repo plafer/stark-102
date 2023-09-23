@@ -14,9 +14,6 @@ pub fn verify(stark_proof: &StarkProof) -> anyhow::Result<()> {
 
     channel.commit(stark_proof.composition_poly_lde_commitment);
 
-    let beta_fri_deg_3 = channel.random_element();
-    channel.commit(stark_proof.fri_layer_deg_3_commitment);
-
     let beta_fri_deg_1 = channel.random_element();
     channel.commit(stark_proof.fri_layer_deg_1_commitment);
 
@@ -70,25 +67,7 @@ fn verify_merkle_proofs(stark_proof: &StarkProof) -> anyhow::Result<()> {
         }
     }
 
-    // FRI layer degree 3 at x^2
-    {
-        let (value, merkle_proof) = &stark_proof.query_phase.fri_layer_deg_3_x;
-        let root = stark_proof.fri_layer_deg_3_commitment;
-        if !merkle_proof.verify_inclusion(*value, root) {
-            bail!("fri_layer_deg_3_x merkle proof verification failed");
-        }
-    }
-
-    // FRI layer degree 3 at -x^2
-    {
-        let (value, merkle_proof) = &stark_proof.query_phase.fri_layer_deg_3_minus_x;
-        let root = stark_proof.fri_layer_deg_3_commitment;
-        if !merkle_proof.verify_inclusion(*value, root) {
-            bail!("fri_layer_deg_3_minus_x merkle proof verification failed");
-        }
-    }
-
-    // FRI layer degree 1 at x^4
+    // FRI layer degree 1 at x^2
     {
         let (value, merkle_proof) = &stark_proof.query_phase.fri_layer_deg_1_x;
         let root = stark_proof.fri_layer_deg_1_commitment;
@@ -97,7 +76,7 @@ fn verify_merkle_proofs(stark_proof: &StarkProof) -> anyhow::Result<()> {
         }
     }
 
-    // FRI layer degree 1 at -x^4
+    // FRI layer degree 1 at -x^2
     {
         let (value, merkle_proof) = &stark_proof.query_phase.fri_layer_deg_1_minus_x;
         let root = stark_proof.fri_layer_deg_1_commitment;

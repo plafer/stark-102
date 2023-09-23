@@ -28,16 +28,19 @@ use merkle::{MerklePath, MerkleRoot};
 pub struct StarkProof {
     // Commitment phase
     pub trace_lde_commitment: MerkleRoot,
+
+    // The composition polynomial has degree 3 (it was *interpolated* on 4
+    // points, and *evaluated* on 8).
     pub composition_poly_lde_commitment: MerkleRoot,
 
-    // The composition polynomial has degree 7 (it was interpolated on 8
-    // points). Hence, the first FRI layer has half that degree, and so on until
-    // we're at degree 1. The last layer (degree 0) has only 1 element, and
-    // hence doesn't need a Merkle tree. That is, the Merkle root would be the
-    // value's hash, and when the value is queried in the query phase, we would
-    // send along its hash, which doesn't provide any additional useful
-    // information to the verifier.
-    pub fri_layer_deg_3_commitment: MerkleRoot,
+    // The first FRI layer has half the degree of the composition polynomial;
+    // that is, degree 1. The last layer (degree 0) has 2 elements that have the
+    // same value (remember: a degree 0 polynomial is a constant function `f(x)
+    // = c`). We don't build a Merkle tree for that layer as it is unnecessary:
+    // assuming that the prover sends the right value to the verifier (if it
+    // doesn't the proof fails anyway), then the Merkle root is deterministic
+    // and doesn't provide any new information. (TODO: refine explanation in
+    // README)
     pub fri_layer_deg_1_commitment: MerkleRoot,
 
     // TODO Q: add explicitly the constant element of last layer? They do in Stark 101.
@@ -59,18 +62,13 @@ pub struct ProofQueryPhase {
 
     // TODO: Remove the `*_x` values below. The verifier computes them, so we don't need to send them over.
 
-    // composition_polynomial(x)
+    // composition_polynomial(x), which has degree 3
     pub cp_x: (BaseField, MerklePath),
     // composition_polynomial(-x)
     pub cp_minus_x: (BaseField, MerklePath),
 
     // FIXME: Stark 101 sends these values in the channel. Is this necessary?
     // Does winterfell do that? Why/why not?
-
-    // fri_layer_deg_3_eval(x^2)
-    pub fri_layer_deg_3_x: (BaseField, MerklePath),
-    // fri_layer_deg_3_eval(-x^2)
-    pub fri_layer_deg_3_minus_x: (BaseField, MerklePath),
 
     // fri_layer_deg_1_eval(x^4)
     pub fri_layer_deg_1_x: (BaseField, MerklePath),

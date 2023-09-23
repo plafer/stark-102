@@ -44,17 +44,9 @@ pub fn generate_proof() -> StarkProof {
     // but made non-interactive using the Fiat-Shamir trick.
 
     // FRI
-    let beta_fri_deg_3 = channel.random_element();
-    let (domain_deg_3, fri_layer_deg_3_poly) =
-        fri_step(&lde_domain.elements, cp.clone(), beta_fri_deg_3);
-    let fri_layer_deg_3_eval = fri_layer_deg_3_poly.eval_domain(&domain_deg_3);
-    let fri_layer_deg_3_merkleized = MerkleTree::new(&fri_layer_deg_3_eval);
-
-    channel.commit(fri_layer_deg_3_merkleized.root);
-
     let beta_fri_deg_1 = channel.random_element();
     let (domain_deg_1, fri_layer_deg_1_poly) =
-        fri_step(&domain_deg_3, fri_layer_deg_3_poly.clone(), beta_fri_deg_1);
+        fri_step(&lde_domain.elements, cp.clone(), beta_fri_deg_1);
     let fri_layer_deg_1_eval = fri_layer_deg_1_poly.eval_domain(&domain_deg_1);
     let fri_layer_deg_1_merkleized = MerkleTree::new(&fri_layer_deg_1_eval);
 
@@ -63,7 +55,17 @@ pub fn generate_proof() -> StarkProof {
     let beta_fri_deg_0 = channel.random_element();
     let (domain_deg_0, fri_layer_deg_0_poly) =
         fri_step(&domain_deg_1, fri_layer_deg_1_poly.clone(), beta_fri_deg_0);
-    assert_eq!(domain_deg_0.len(), 1);
+
+    // The last layer has degree 0, with 2 elements. Therefore, we expect both
+    // of these elements to be the same value (a degree 0 polynomial is a
+    // constant function, meaning that it evaluates to the same value
+    // everywhere).
+    assert_eq!(domain_deg_0.len(), 2);
+    assert_eq!(
+        fri_layer_deg_0_poly.eval(domain_deg_0[0]),
+        fri_layer_deg_0_poly.eval(domain_deg_0[1])
+    );
+
     let fri_layer_deg_0_eval = fri_layer_deg_0_poly.eval(domain_deg_0[0]);
 
     ////////////////////
@@ -90,8 +92,6 @@ pub fn generate_proof() -> StarkProof {
         &trace_lde_merkleized,
         &cp_lde,
         &cp_lde_merkleized,
-        &fri_layer_deg_3_eval,
-        &fri_layer_deg_3_merkleized,
         &fri_layer_deg_1_eval,
         &fri_layer_deg_1_merkleized,
         fri_layer_deg_0_eval,
@@ -100,16 +100,15 @@ pub fn generate_proof() -> StarkProof {
     let commitments = channel.finalize();
     assert_eq!(
         commitments.len(),
-        4,
-        "Expected 4 commitments, got {}",
+        3,
+        "Expected 3 commitments, got {}",
         commitments.len()
     );
 
     StarkProof {
         trace_lde_commitment: commitments[0],
         composition_poly_lde_commitment: commitments[1],
-        fri_layer_deg_3_commitment: commitments[2],
-        fri_layer_deg_1_commitment: commitments[3],
+        fri_layer_deg_1_commitment: commitments[2],
         query_phase,
     }
 }
@@ -148,8 +147,6 @@ fn generate_query_phase(
     trace_lde_merkleized: &MerkleTree,
     cp_lde: &[BaseField],
     cp_lde_merkleized: &MerkleTree,
-    fri_layer_deg_3_eval: &[BaseField],
-    fri_layer_deg_3_merkleized: &MerkleTree,
     fri_layer_deg_1_eval: &[BaseField],
     fri_layer_deg_1_merkleized: &MerkleTree,
     fri_layer_deg_0_eval: BaseField,
@@ -174,24 +171,8 @@ fn generate_query_phase(
         )
     };
 
-    // Query FRI layer of degree 3
-    let query_idx_fri_3_x = query_idx / 2;
-
-    let fri_layer_deg_3_x = fri_layer_deg_3_eval[query_idx_fri_3_x];
-    let fri_layer_deg_3_x_proof =
-        MerklePath::new(fri_layer_deg_3_merkleized, query_idx_fri_3_x).unwrap();
-
-    let (fri_layer_deg_3_minus_x, fri_layer_deg_3_minus_x_proof) = {
-        let query_idx_fri_3_minus_x = (query_idx_fri_3_x + 2) % 4;
-
-        (
-            fri_layer_deg_3_eval[query_idx_fri_3_minus_x],
-            MerklePath::new(fri_layer_deg_3_merkleized, query_idx_fri_3_minus_x).unwrap(),
-        )
-    };
-
     // Query FRI layer of degree 1
-    let query_idx_fri_1_x = query_idx_fri_3_x / 2;
+    let query_idx_fri_1_x = query_idx / 2;
 
     let fri_layer_deg_1_x = fri_layer_deg_1_eval[query_idx_fri_1_x];
     let fri_layer_deg_1_x_proof =
@@ -215,8 +196,6 @@ fn generate_query_phase(
         trace_gx: (t_gx, t_gx_proof),
         cp_x: (cp_x, cp_x_proof),
         cp_minus_x: (cp_minus_x, cp_minus_x_proof),
-        fri_layer_deg_3_x: (fri_layer_deg_3_x, fri_layer_deg_3_x_proof),
-        fri_layer_deg_3_minus_x: (fri_layer_deg_3_minus_x, fri_layer_deg_3_minus_x_proof),
         fri_layer_deg_1_x: (fri_layer_deg_1_x, fri_layer_deg_1_x_proof),
         fri_layer_deg_1_minus_x: (fri_layer_deg_1_minus_x, fri_layer_deg_1_minus_x_proof),
         fri_layer_deg_0_x: fri_layer_deg_0_eval,
