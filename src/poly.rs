@@ -37,6 +37,7 @@ impl Polynomial {
         self.coefficients.len() - 1
     }
 
+    // TODO: impl Mul<BaseField> for Polynomial instead
     pub fn scalar_mul(&mut self, x: BaseField) {
         let scalar_mul_poly = Self::new(vec![x]);
 
@@ -123,7 +124,11 @@ impl Polynomial {
     ///
     /// Precondition: The polynomial is not a constant (i.e. only one coefficient).
     pub fn fri_step(self, beta: BaseField) -> Self {
-        assert!(self.coefficients.len() > 1);
+        assert!(
+            self.coefficients.len() > 1,
+            "num coefficients: {}",
+            self.coefficients.len()
+        );
 
         let even_coeffs: Vec<_> = self.coefficients.clone().into_iter().step_by(2).collect();
         let odd_coeffs: Vec<_> = self.coefficients.into_iter().skip(1).step_by(2).collect();
