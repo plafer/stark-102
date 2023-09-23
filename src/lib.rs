@@ -89,7 +89,8 @@ mod tests {
     #[test]
     pub fn proof_verification() {
         let proof = generate_proof();
+        let verify_result = verifier::verify(&proof);
 
-        assert!(verifier::verify(&proof).is_ok());
+        assert!(verify_result.is_ok(), "Error: {verify_result:?}");
     }
 }

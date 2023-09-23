@@ -109,7 +109,7 @@ fn verify_query(
     let x = domain_lde.elements[query_idx];
 
     // Ensure that the composition polynomial value is actually derived from the trace
-    let C1_x: BaseField = {
+    let boundary_constraint_x: BaseField = {
         // FIXME: Don't hardcode `3` and `1`. Make it explicit in code what they are.
 
         // `3` is the first value of the trace; this is part of the problem
@@ -120,7 +120,7 @@ fn verify_query(
         p1_x / (x - 1.into())
     };
 
-    let C2_x: BaseField = {
+    let transition_constraint_x: BaseField = {
         let p2_x = queries.trace_gx.0 - queries.trace_x.0.exp(2);
 
         let denom = (x - 1.into()) * (x - 13.into()) * (x - 16.into());
@@ -129,6 +129,32 @@ fn verify_query(
     };
 
     // composition_polynomial(x)
+    let cp_x = boundary_constraint_x * alpha_0 + transition_constraint_x * alpha_1;
 
-    todo!()
+    let fri_layer_deg_1_x: BaseField = {
+        let cp_minus_x = queries.cp_minus_x.0;
+
+        let g_x_squared = (cp_x + cp_minus_x) / BaseField::new(2);
+        let h_x_squared = (cp_x - cp_minus_x) / (BaseField::new(2) * x);
+
+        g_x_squared + beta_fri_deg_1 * h_x_squared
+    };
+
+    let expected_fri_layer_deg_0_x: BaseField = {
+        let fri_layer_deg_1_minus_x = queries.fri_layer_deg_1_minus_x.0;
+
+        let g_x_squared = (fri_layer_deg_1_x + fri_layer_deg_1_minus_x) / BaseField::new(2);
+        let h_x_squared = (fri_layer_deg_1_x - fri_layer_deg_1_minus_x) / (BaseField::new(2) * x);
+
+        g_x_squared + beta_fri_deg_0 * h_x_squared
+    };
+
+    if expected_fri_layer_deg_0_x == queries.fri_layer_deg_0_x {
+        Ok(())
+    } else {
+        bail!(
+            "Final FRI layer check failed. Expected {expected_fri_layer_deg_0_x}, got {}",
+            queries.fri_layer_deg_0_x
+        )
+    }
 }
