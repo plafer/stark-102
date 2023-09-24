@@ -159,7 +159,7 @@ fn generate_query_phase(
     let t_gx_proof = MerklePath::new(trace_lde_merkleized, query_idx + 2)
         .expect("query index is between 2 and 7, and Merkle tree has 8 elements");
 
-    // Query composition polynomial
+    // Query composition polynomial (domain size = 8)
     let cp_x = cp_lde[query_idx];
     let cp_x_proof = MerklePath::new(cp_lde_merkleized, query_idx).unwrap();
     let (cp_minus_x, cp_minus_x_proof) = {
@@ -171,7 +171,7 @@ fn generate_query_phase(
         )
     };
 
-    // Query FRI layer of degree 1
+    // Query FRI layer of degree 1 (domain size = 4)
     let query_idx_fri_1_x = query_idx / 2;
 
     let fri_layer_deg_1_x = fri_layer_deg_1_eval[query_idx_fri_1_x];
@@ -186,10 +186,6 @@ fn generate_query_phase(
             MerklePath::new(fri_layer_deg_1_merkleized, query_idx_fri_1_minus_x).unwrap(),
         )
     };
-
-    // Query FRI layer of degree 0
-    let query_idx_fri_0_x = query_idx_fri_1_x / 2;
-    assert_eq!(query_idx_fri_0_x, 0);
 
     ProofQueryPhase {
         trace_x: (t_x, t_x_proof),
