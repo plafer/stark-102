@@ -131,6 +131,7 @@ fn verify_query(
     // composition_polynomial(x)
     let cp_x = boundary_constraint_x * alpha_0 + transition_constraint_x * alpha_1;
 
+    // FRI layer deg 1
     let fri_layer_deg_1_x: BaseField = {
         let cp_minus_x = queries.cp_minus_x.0;
 
@@ -140,11 +141,15 @@ fn verify_query(
         g_x_squared + beta_fri_deg_1 * h_x_squared
     };
 
+    // FRI layer deg 0
+    let x = x.exp(2);
+
     let expected_fri_layer_deg_0_x: BaseField = {
         let fri_layer_deg_1_minus_x = queries.fri_layer_deg_1_minus_x.0;
 
         let g_x_squared = (fri_layer_deg_1_x + fri_layer_deg_1_minus_x) / BaseField::new(2);
-        let h_x_squared = (fri_layer_deg_1_x - fri_layer_deg_1_minus_x) / (BaseField::new(2) * x);
+        let h_x_squared =
+            (fri_layer_deg_1_x - fri_layer_deg_1_minus_x) / (BaseField::new(2) * x);
 
         g_x_squared + beta_fri_deg_0 * h_x_squared
     };
@@ -153,8 +158,9 @@ fn verify_query(
         Ok(())
     } else {
         bail!(
-            "Final FRI layer check failed. Expected {expected_fri_layer_deg_0_x}, got {}",
-            queries.fri_layer_deg_0_x
+            "Final FRI layer check failed. Value in proof: {}, but computed {}",
+            queries.fri_layer_deg_0_x,
+            expected_fri_layer_deg_0_x
         )
     }
 }

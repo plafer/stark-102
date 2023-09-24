@@ -123,6 +123,8 @@ impl Polynomial {
             self.coefficients.len()
         );
 
+        println!("FRI step on coefficients {:?} with beta={beta}", self.coefficients);
+
         let even_coeffs: Vec<_> = self.coefficients.clone().into_iter().step_by(2).collect();
         let odd_coeffs: Vec<_> = self.coefficients.into_iter().skip(1).step_by(2).collect();
 

@@ -164,6 +164,7 @@ fn generate_query_phase(
     let cp_x_proof = MerklePath::new(cp_lde_merkleized, query_idx).unwrap();
     let (cp_minus_x, cp_minus_x_proof) = {
         let query_idx_minus_x = (query_idx + 4) % 8;
+        println!("query_idx: {}, cp(x): {}; query_idx_minus: {}, cp_-x: {}", query_idx, cp_x, query_idx_minus_x, cp_lde[query_idx_minus_x]);
 
         (
             cp_lde[query_idx_minus_x],
@@ -172,7 +173,10 @@ fn generate_query_phase(
     };
 
     // Query FRI layer of degree 1 (domain size = 4)
-    let query_idx_fri_1_x = query_idx / 2;
+    // TODO: Explain why it's %4
+    // Core idea: [a,b,c,d,e,f,g]^2 -> [x,y,z,w,x,y,z,w]. 
+    // e.g. query_idx = 5, then f^2 = y, and query_idx_next = 5%4 = 1 (which is also `y`)
+    let query_idx_fri_1_x = query_idx % 4;
 
     let fri_layer_deg_1_x = fri_layer_deg_1_eval[query_idx_fri_1_x];
     let fri_layer_deg_1_x_proof =
