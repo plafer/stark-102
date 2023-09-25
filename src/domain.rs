@@ -1,4 +1,4 @@
-use std::ops::Index;
+use std::ops::{Deref, Index};
 
 use crate::field::BaseField;
 
@@ -26,5 +26,13 @@ impl Index<usize> for DomainTrace {
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.elements[index]
+    }
+}
+
+impl Deref for DomainTrace {
+    type Target = [BaseField];
+
+    fn deref(&self) -> &Self::Target {
+        &self.elements
     }
 }

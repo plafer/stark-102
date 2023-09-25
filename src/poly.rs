@@ -230,9 +230,9 @@ impl Div<BaseField> for Polynomial {
 
 #[cfg(test)]
 mod tests {
-    use crate::field::CyclicGroup;
-
     use super::*;
+
+    use crate::domain::DOMAIN_TRACE;
 
     #[test]
     pub fn poly_add_self() {
@@ -338,12 +338,11 @@ mod tests {
 
     #[test]
     pub fn lagrange_interp() {
-        let domain = CyclicGroup::new(4).unwrap();
         let evaluations: Vec<BaseField> = vec![3.into(), 9.into(), 13.into(), 16.into()];
 
-        let interp_poly = Polynomial::lagrange_interp(&domain.elements, &evaluations).unwrap();
+        let interp_poly = Polynomial::lagrange_interp(&DOMAIN_TRACE, &evaluations).unwrap();
 
-        assert_eq!(interp_poly.eval(domain.elements[0]), evaluations[0]);
+        assert_eq!(interp_poly.eval(DOMAIN_TRACE[0]), evaluations[0]);
 
         assert_eq!(
             interp_poly,

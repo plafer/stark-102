@@ -1,6 +1,7 @@
 use crate::{
     channel::Channel,
     constraints::composition_polynomial,
+    domain::DOMAIN_TRACE,
     field::{BaseField, CyclicGroup},
     merkle::{MerklePath, MerkleTree},
     poly::Polynomial,
@@ -17,8 +18,7 @@ pub fn generate_proof() -> StarkProof {
 
     // Trace
     let trace = generate_trace();
-    let trace_domain = CyclicGroup::new(4).unwrap();
-    let trace_polynomial = Polynomial::lagrange_interp(&trace_domain.elements, &trace).unwrap();
+    let trace_polynomial = Polynomial::lagrange_interp(&DOMAIN_TRACE, &trace).unwrap();
 
     let lde_domain = CyclicGroup::new(8).unwrap();
     let trace_lde = trace_polynomial.eval_domain(&lde_domain.elements);
