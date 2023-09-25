@@ -1,7 +1,7 @@
 use std::{
     cmp::min,
     iter::Sum,
-    ops::{Add, AddAssign, Mul, MulAssign},
+    ops::{Add, AddAssign, Div, Mul, MulAssign},
 };
 
 use anyhow::bail;
@@ -35,11 +35,6 @@ impl Polynomial {
 
     pub fn degree(&self) -> usize {
         self.coefficients.len() - 1
-    }
-
-    // TODO: impl Div<BaseField> instead
-    pub fn scalar_div(&mut self, x: BaseField) {
-        *self *= x.mult_inv();
     }
 
     /// Evaluates the polynomial at `x`
@@ -97,10 +92,7 @@ impl Polynomial {
             (numerator, denominator)
         };
 
-        let mut out_poly = numerator * y_j;
-        out_poly.scalar_div(denominator);
-
-        out_poly
+        (numerator * y_j) / denominator
     }
 
     /// Performs one FRI step on the polynomial.
@@ -123,7 +115,10 @@ impl Polynomial {
             self.coefficients.len()
         );
 
-        println!("FRI step on coefficients {:?} with beta={beta}", self.coefficients);
+        println!(
+            "FRI step on coefficients {:?} with beta={beta}",
+            self.coefficients
+        );
 
         let even_coeffs: Vec<_> = self.coefficients.clone().into_iter().step_by(2).collect();
         let odd_coeffs: Vec<_> = self.coefficients.into_iter().skip(1).step_by(2).collect();
@@ -221,6 +216,15 @@ impl Mul<BaseField> for Polynomial {
 impl MulAssign<BaseField> for Polynomial {
     fn mul_assign(&mut self, rhs: BaseField) {
         *self = self.clone() * rhs;
+    }
+}
+
+impl Div<BaseField> for Polynomial {
+    type Output = Self;
+
+    #[allow(clippy::suspicious_arithmetic_impl)]
+    fn div(self, rhs: BaseField) -> Self::Output {
+        self * rhs.mult_inv()
     }
 }
 
