@@ -58,30 +58,12 @@ fn verify_merkle_proofs(stark_proof: &StarkProof) -> anyhow::Result<()> {
         }
     }
 
-    // cp(x)
-    {
-        let (value, merkle_proof) = &stark_proof.query_phase.cp_x;
-        let root = stark_proof.composition_poly_lde_commitment;
-        if !merkle_proof.verify_inclusion(*value, root) {
-            bail!("cp_x merkle proof verification failed");
-        }
-    }
-
     // cp(-x)
     {
         let (value, merkle_proof) = &stark_proof.query_phase.cp_minus_x;
         let root = stark_proof.composition_poly_lde_commitment;
         if !merkle_proof.verify_inclusion(*value, root) {
             bail!("cp_minus_x merkle proof verification failed");
-        }
-    }
-
-    // FRI layer degree 1 at x^2
-    {
-        let (value, merkle_proof) = &stark_proof.query_phase.fri_layer_deg_1_x;
-        let root = stark_proof.fri_layer_deg_1_commitment;
-        if !merkle_proof.verify_inclusion(*value, root) {
-            bail!("fri_layer_deg_1_x merkle proof verification failed");
         }
     }
 

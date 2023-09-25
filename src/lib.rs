@@ -59,23 +59,14 @@ pub struct ProofQueryPhase {
     // trace(gx); where g is the generator for the original domain (size 4)
     pub trace_gx: (BaseField, MerklePath),
 
-    // TODO: Remove the `*_x` values below. The verifier computes them, so we don't need to send them over.
-
-    // composition_polynomial(x), which has degree 3
-    pub cp_x: (BaseField, MerklePath),
-    // composition_polynomial(-x)
+    // `composition_polynomial(-x)` (degree 3)
     pub cp_minus_x: (BaseField, MerklePath),
 
     // FIXME: Stark 101 sends these values in the channel. Is this necessary?
     // Does winterfell do that? Why/why not?
 
-    // fri_layer_deg_1_eval(x^4)
-    pub fri_layer_deg_1_x: (BaseField, MerklePath),
     // fri_layer_deg_1_eval(-x^4)
     pub fri_layer_deg_1_minus_x: (BaseField, MerklePath),
-
-    // FIXME: Stark 101 (and winterfell I think?) don't send a commitment for
-    // degree 0. Confirm.
 
     // fri_layer_deg_0_eval(x^8)
     pub fri_layer_deg_0_x: BaseField,
