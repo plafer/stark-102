@@ -16,6 +16,12 @@ pub struct BaseField {
 }
 
 impl BaseField {
+    pub const fn new(element: u8) -> Self {
+        Self {
+            element: element % PRIME,
+        }
+    }
+
     pub fn zero() -> Self {
         Self { element: 0u8 }
     }

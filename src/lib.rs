@@ -13,6 +13,7 @@
 
 pub mod channel;
 pub mod constraints;
+pub mod domain;
 pub mod field;
 pub mod merkle;
 pub mod poly;
