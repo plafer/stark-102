@@ -37,9 +37,8 @@ impl BaseField {
         }
     }
 
-    /// Returns the multiplicative inverse for elements in the subgroup {1, ...,
-    /// 16} Yes, this is a bit messy, because not all elements of the field have
-    /// a multiplicative inverse.
+    /// Returns the multiplicative inverse for elements in the subgroup 
+    /// {1, ..., 16}
     pub fn mult_inv(&self) -> Self {
         assert!(
             *self != Self::zero(),
