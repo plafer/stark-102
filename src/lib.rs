@@ -43,7 +43,6 @@ pub struct StarkProof {
     // README)
     pub fri_layer_deg_1_commitment: MerkleRoot,
 
-    // TODO Q: add explicitly the constant element of last layer? They do in Stark 101.
     pub query_phase: ProofQueryPhase,
 }
 
