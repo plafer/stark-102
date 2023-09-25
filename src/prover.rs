@@ -1,8 +1,8 @@
 use crate::{
     channel::Channel,
     constraints::composition_polynomial,
-    domain::DOMAIN_TRACE,
-    field::{BaseField, CyclicGroup},
+    domain::{DOMAIN_LDE, DOMAIN_TRACE},
+    field::BaseField,
     merkle::{MerklePath, MerkleTree},
     poly::Polynomial,
     trace::generate_trace,
@@ -20,8 +20,7 @@ pub fn generate_proof() -> StarkProof {
     let trace = generate_trace();
     let trace_polynomial = Polynomial::lagrange_interp(&DOMAIN_TRACE, &trace).unwrap();
 
-    let lde_domain = CyclicGroup::new(8).unwrap();
-    let trace_lde = trace_polynomial.eval_domain(&lde_domain.elements);
+    let trace_lde = trace_polynomial.eval_domain(&DOMAIN_LDE);
     let trace_lde_merkleized = MerkleTree::new(&trace_lde);
 
     channel.commit(trace_lde_merkleized.root);
@@ -34,7 +33,7 @@ pub fn generate_proof() -> StarkProof {
         composition_polynomial(alpha_0, alpha_1)
     };
 
-    let cp_lde = cp.eval_domain(&lde_domain.elements);
+    let cp_lde = cp.eval_domain(&DOMAIN_LDE);
     let cp_lde_merkleized = MerkleTree::new(&cp_lde);
 
     channel.commit(cp_lde_merkleized.root);
@@ -45,8 +44,7 @@ pub fn generate_proof() -> StarkProof {
 
     // FRI
     let beta_fri_deg_1 = channel.random_element();
-    let (domain_deg_1, fri_layer_deg_1_poly) =
-        fri_step(&lde_domain.elements, cp.clone(), beta_fri_deg_1);
+    let (domain_deg_1, fri_layer_deg_1_poly) = fri_step(&DOMAIN_LDE, cp.clone(), beta_fri_deg_1);
     let fri_layer_deg_1_eval = fri_layer_deg_1_poly.eval_domain(&domain_deg_1);
     let fri_layer_deg_1_merkleized = MerkleTree::new(&fri_layer_deg_1_eval);
 

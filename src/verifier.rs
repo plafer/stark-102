@@ -1,10 +1,6 @@
 use anyhow::bail;
 
-use crate::{
-    channel::Channel,
-    field::{BaseField, CyclicGroup},
-    ProofQueryPhase, StarkProof,
-};
+use crate::{channel::Channel, domain::DOMAIN_LDE, field::BaseField, ProofQueryPhase, StarkProof};
 
 pub fn verify(stark_proof: &StarkProof) -> anyhow::Result<()> {
     let mut channel = Channel::new();
@@ -87,8 +83,7 @@ fn verify_query(
     beta_fri_deg_0: BaseField,
     query_idx: usize,
 ) -> anyhow::Result<()> {
-    let domain_lde = CyclicGroup::new(8)?;
-    let x = domain_lde.elements[query_idx];
+    let x = DOMAIN_LDE[query_idx];
 
     // Ensure that the composition polynomial value is actually derived from the trace
     let boundary_constraint_x: BaseField = {
