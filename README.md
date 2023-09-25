@@ -34,4 +34,6 @@ over prime field with prime 17.
 + The verifier checks the evaluation *at a point* (the "query point")
     + Give the intuition why this works (LDE, etc)
     + to increase security, do more queries
-+ Make `3` a public param?
++ Reader challenge: Make `3` a public param. Requires
+    + changing boundary constraint (hint: you will need to implement polynomial division)
+    + Initialize channel with public param instead of `CHANNEL_SALT`

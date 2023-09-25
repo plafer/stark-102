@@ -1,7 +1,5 @@
 use crate::{field::BaseField, poly::Polynomial};
 
-/// TODO: Make the `3` a public parameter, so that we can have a trace param here
-///
 /// Polynomial representation of our boundary constraint that the first element
 /// of the trace is 3; that is, t(1) = 3. This gets converted into a statement
 /// of the form "<some expression agreed to by the prover and verifier> is a
