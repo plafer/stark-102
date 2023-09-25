@@ -16,13 +16,6 @@ pub struct BaseField {
 }
 
 impl BaseField {
-    // FIXME: It would be better to accept i32 here, or i64
-    pub fn new(element: u8) -> Self {
-        Self {
-            element: element % PRIME,
-        }
-    }
-
     pub fn zero() -> Self {
         Self { element: 0u8 }
     }
@@ -37,7 +30,7 @@ impl BaseField {
         }
     }
 
-    /// Returns the multiplicative inverse for elements in the subgroup 
+    /// Returns the multiplicative inverse for elements in the subgroup
     /// {1, ..., 16}
     pub fn mult_inv(&self) -> Self {
         assert!(
@@ -103,7 +96,15 @@ impl BaseField {
 
 impl From<u8> for BaseField {
     fn from(element: u8) -> Self {
-        Self::new(element)
+        Self {
+            element: element % PRIME,
+        }
+    }
+}
+
+impl From<BaseField> for u8 {
+    fn from(field: BaseField) -> Self {
+        field.element
     }
 }
 
@@ -118,7 +119,7 @@ impl From<i32> for BaseField {
         // This brings the number in the [0, 17*2) range
         let num = num + PRIME as i32;
 
-        Self::new(num as u8)
+        Self::from(num as u8)
     }
 }
 
@@ -276,10 +277,10 @@ mod tests {
     #[test]
     fn test_from_i32() {
         let ele = BaseField::from(-1);
-        assert_eq!(ele, BaseField::new(16u8));
+        assert_eq!(ele, BaseField::from(16u8));
 
         let ele = BaseField::from(-100);
-        assert_eq!(ele, BaseField::new(2u8));
+        assert_eq!(ele, BaseField::from(2u8));
     }
 
     #[test]
