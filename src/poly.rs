@@ -6,7 +6,7 @@ use std::{
 
 use anyhow::bail;
 
-use crate::field::{BaseField, CyclicGroup};
+use crate::field::BaseField;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Polynomial {
@@ -58,7 +58,7 @@ impl Polynomial {
 
     // https://mathworld.wolfram.com/LagrangeInterpolatingPolynomial.html
     pub fn lagrange_interp(
-        domain: &CyclicGroup,
+        domain: &[BaseField],
         evaluations: &[BaseField],
     ) -> anyhow::Result<Self> {
         if domain.len() != evaluations.len() {
@@ -72,15 +72,15 @@ impl Polynomial {
         Ok(interpolated_poly)
     }
 
-    fn partial_lagrange_poly(j: usize, domain: &CyclicGroup, evaluations: &[BaseField]) -> Self {
-        let x_j = domain.elements[j];
+    fn partial_lagrange_poly(j: usize, domain: &[BaseField], evaluations: &[BaseField]) -> Self {
+        let x_j = domain[j];
         let y_j = evaluations[j];
 
         let (numerator, denominator) = {
             let mut numerator = Polynomial::one();
             let mut denominator = BaseField::one();
 
-            for domain_ele in domain.elements.iter() {
+            for domain_ele in domain.iter() {
                 if x_j != *domain_ele {
                     // x - x_k
                     numerator *= Polynomial::new(vec![domain_ele.minus(), 1.into()]);
@@ -230,6 +230,8 @@ impl Div<BaseField> for Polynomial {
 
 #[cfg(test)]
 mod tests {
+    use crate::field::CyclicGroup;
+
     use super::*;
 
     #[test]
@@ -339,7 +341,7 @@ mod tests {
         let domain = CyclicGroup::new(4).unwrap();
         let evaluations: Vec<BaseField> = vec![3.into(), 9.into(), 13.into(), 16.into()];
 
-        let interp_poly = Polynomial::lagrange_interp(&domain, &evaluations).unwrap();
+        let interp_poly = Polynomial::lagrange_interp(&domain.elements, &evaluations).unwrap();
 
         assert_eq!(interp_poly.eval(domain.elements[0]), evaluations[0]);
 
