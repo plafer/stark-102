@@ -148,8 +148,7 @@ fn verify_query(
         let fri_layer_deg_1_minus_x = queries.fri_layer_deg_1_minus_x.0;
 
         let g_x_squared = (fri_layer_deg_1_x + fri_layer_deg_1_minus_x) / BaseField::new(2);
-        let h_x_squared =
-            (fri_layer_deg_1_x - fri_layer_deg_1_minus_x) / (BaseField::new(2) * x);
+        let h_x_squared = (fri_layer_deg_1_x - fri_layer_deg_1_minus_x) / (BaseField::new(2) * x);
 
         g_x_squared + beta_fri_deg_0 * h_x_squared
     };

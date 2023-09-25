@@ -71,6 +71,12 @@ impl Channel {
     }
 }
 
+impl Default for Channel {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
