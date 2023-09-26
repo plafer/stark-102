@@ -18,13 +18,19 @@ pub mod domain;
 pub mod field;
 pub mod merkle;
 pub mod poly;
-pub mod prover;
+pub(crate) mod prover;
 pub mod trace;
 pub mod util;
-pub mod verifier;
+pub(crate) mod verifier;
 
 use field::BaseField;
 use merkle::{MerklePath, MerkleRoot};
+
+/// Generate the STARK
+pub use prover::generate_proof;
+
+/// Verify the STARK
+pub use verifier::verify;
 
 #[derive(Clone, Debug)]
 pub struct StarkProof {
@@ -76,12 +82,12 @@ pub struct ProofQueryPhase {
 
 #[cfg(test)]
 mod tests {
-    use crate::{prover::generate_proof, verifier};
+    use super::*;
 
     #[test]
     pub fn proof_verification() {
         let proof = generate_proof();
-        let verify_result = verifier::verify(&proof);
+        let verify_result = verify(&proof);
 
         assert!(verify_result.is_ok(), "Error: {verify_result:?}");
     }
