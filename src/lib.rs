@@ -1,6 +1,7 @@
 #![feature(slice_as_chunks)]
 
 // Questions to answer
+// TODO: MOVE TO README
 // (t(x) is the trace polynomial)
 
 // Q: How does the verifier ensure the polynomial is correct, even though it's
