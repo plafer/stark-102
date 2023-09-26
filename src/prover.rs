@@ -82,7 +82,7 @@ pub fn generate_proof() -> StarkProof {
     // hw^i)`. We have that `t(ghw^i) = t(w^2 * h * w^i) = t(h * w^(i+2))`, so
     // the index is `i+2`.
 
-    let query_idx = channel.random_integer(8 - 2) as usize;
+    let query_idx = channel.random_integer(DOMAIN_LDE.len() as u8 - 2) as usize;
 
     let query_phase = generate_query_phase(
         query_idx,
@@ -159,7 +159,8 @@ fn generate_query_phase(
 
     // Query composition polynomial (domain size = 8)
     let (cp_minus_x, cp_minus_x_proof) = {
-        let query_idx_minus_x = (query_idx + 4) % 8;
+        let domain_len = DOMAIN_LDE.len();
+        let query_idx_minus_x = (query_idx + domain_len / 2) % domain_len;
 
         (
             cp_lde[query_idx_minus_x],
@@ -171,6 +172,7 @@ fn generate_query_phase(
     // TODO: Explain why it's %4
     // Core idea: [a,b,c,d,e,f,g]^2 -> [x,y,z,w,x,y,z,w].
     // e.g. query_idx = 5, then f^2 = y, and query_idx_next = 5%4 = 1 (which is also `y`)
+    // TODO: Use DOMAIN_LDE.len()/2
     let query_idx_fri_1_x = query_idx % 4;
 
     let (fri_layer_deg_1_minus_x, fri_layer_deg_1_minus_x_proof) = {

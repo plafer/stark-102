@@ -1,6 +1,12 @@
 use anyhow::bail;
 
-use crate::{channel::Channel, domain::DOMAIN_LDE, field::BaseField, ProofQueryPhase, StarkProof};
+use crate::{
+    channel::Channel,
+    domain::{DOMAIN_LDE, DOMAIN_TRACE},
+    field::BaseField,
+    trace::TRACE_FIRST_ELEMENT,
+    ProofQueryPhase, StarkProof,
+};
 
 pub fn verify(stark_proof: &StarkProof) -> anyhow::Result<()> {
     let mut channel = Channel::new();
@@ -19,7 +25,7 @@ pub fn verify(stark_proof: &StarkProof) -> anyhow::Result<()> {
 
     let beta_fri_deg_0 = channel.random_element();
 
-    let query_idx = channel.random_integer(8 - 2) as usize;
+    let query_idx = channel.random_integer(DOMAIN_LDE.len() as u8 - 2) as usize;
 
     // Verify all the Merkle proofs, to make sure that values in the proof
     // struct are valid.
@@ -87,20 +93,15 @@ fn verify_query(
 
     // Ensure that the composition polynomial value is actually derived from the trace
     let boundary_constraint_x: BaseField = {
-        // FIXME: Don't hardcode `3` and `1`. Make it explicit in code what they are.
+        let p1_x = queries.trace_x.0 - TRACE_FIRST_ELEMENT;
 
-        // `3` is the first value of the trace; this is part of the problem
-        // definition, and agreed upon by the prover and verifier
-        let p1_x = queries.trace_x.0 - BaseField::from(3);
-
-        // `1` is the first value of the original domain.
-        p1_x / (x - 1.into())
+        p1_x / (x - DOMAIN_TRACE[0])
     };
 
     let transition_constraint_x: BaseField = {
         let p2_x = queries.trace_gx.0 - queries.trace_x.0.exp(2);
 
-        let denom = (x - 1.into()) * (x - 13.into()) * (x - 16.into());
+        let denom = (x - DOMAIN_TRACE[0]) * (x - DOMAIN_TRACE[1]) * (x - DOMAIN_TRACE[2]);
 
         p2_x / denom
     };
