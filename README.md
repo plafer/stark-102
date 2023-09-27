@@ -28,6 +28,9 @@ Where appropriate, we choose the simpler of 2 valid options. For example, we use
 ## Discussion
 In this section we will discuss important topics in detail. We will focus on the ones that weren't fully explored in STARK 101.
 
+### Commit and Query pattern
+If if it is not clear to you why the "commit and query" strategy used in STARKs is a valid way to verify if the prover does indeed have the claimed polynomial, then I recommend you read [this article](https://vitalik.ca/general/2017/11/09/starks_part_1.html) by Vitalik. I found it did a great job at conveying the intuition.
+
 ### The Channel abstraction
 The `Channel`, defined in `src/channel.rs`, is the type that implements the Fiat-Shamir transform. You will find an equivalent type both in STARK 101 and Winterfell. It is a core piece of the STARK implementations.
 
@@ -44,9 +47,6 @@ Finally, let's turn our attention to how the verifier uses the `Channel` in `ver
     + blowup factor: the domain size multiplier during LDE (here: 2)
     + folding factor: by how much you divide in-betIen each FRI layer (here: 2)
 + Explain the Scalable and Transparent parts
-+ The verifier checks the evaluation *at a point* (the "query point")
-    + Give the intuition why this works (LDE, etc)
-    + to increase security, do more queries
 + Reader challenge: Make `3` a public param. Requires
     + changing boundary constraint (hint: you will need to implement polynomial division)
     + Initialize channel with public param instead of `CHANNEL_SALT`
