@@ -27,6 +27,13 @@ Similar to STARK 101, this is meant as a resource to learn about STARKs. The goa
 
 Where appropriate, we choose the simpler of 2 valid options. For example, we use Lagrange interpolation instead of Fast Fourier Transforms, and FRI instead of DEEP FRI. There are no dependencies other than `blake3` for a hash function, and `anyhow` for convenient errors. We wanted every last detail about what makes STARKs tick to be contained in this repository, whether it's how to compute the logarithm of a field element, how Lagrange interpolation works, or how Merkle tree proof verification actually works. We strongly believe that having everything in one place, where the focus is *ease of understanding* as opposed to efficiency, is very helpful. This is similar in philosophy to STARK 101. Finally, some loops are unrolled, such as when computing FRI layers. This allows us to give a name to each FRI layer, and makes the number of layers explicit. We believe this can help readers identify shortcomings in their understanding. Maybe they expected there to be 4 layers, where in reality there are 3; they probably wouldn't have realized that if we stored the layers as `Vec<FriLayer>`.
 
+## How to approach the repository
+`lib.rs` contains the definition of `StarkProof`, the type that defines what a proof looks like. You should first head over to `prover::generate_proof()` to see how a proof is constructed. This will introduce you to all our core types, such as `field::BaseField`, `poly::Polynomial`, `merkle::MerkleTree`, etc.
+
+Then, you can head over to `verifier::verify()` to see how the verifier uses the `StarkProof` struct to accept or reject a proof.
+
+The test at the bottom of `lib.rs` demonstrates the usage of the library. You can also run `cargo doc --open` to generate the docs.
+
 ## Discussion
 In this section we will discuss important topics in detail. We will focus on the ones that weren't fully explored in STARK 101.
 
@@ -66,5 +73,4 @@ Essentially, modify the codebase to make the first value in the sequence any val
     + blowup factor: the domain size multiplier during LDE (here: 2)
     + folding factor: by how much you divide in-betIen each FRI layer (here: 2)
 + Explain the Scalable and Transparent parts
-+ Describe repo layout, and how to navigate it?
 + Note: maybe blake3 doesn't have good properties. It was an arbitrary choice, and not important to get the point across
