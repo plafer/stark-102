@@ -11,8 +11,8 @@ Specifically, we implement a STARK that proves the following statement:
 I computed the following sequence:
 
 $$
-a_0 = 3            \\
-a_{n+1} = (a_n)^2  \\
+a_0 = 3            \newline
+a_{n+1} = (a_n)^2 
 $$
 
 over the prime field with prime 17. 
