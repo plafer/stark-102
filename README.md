@@ -25,14 +25,25 @@ Similar to STARK 101, this is meant as a resource to learn about STARKs. The goa
 
 Where appropriate, we choose the simpler of 2 valid options. For example, we use Lagrange interpolation instead of Fast Fourier Transforms, and FRI instead of DEEP FRI. There are no dependencies other than `blake3` for a hash function, and `anyhow` for convenient errors. We wanted every last detail about what makes STARKs tick to be contained in this repository, whether it's how to compute the logarithm of a field element, how Lagrange interpolation works, or how Merkle tree proof verification actually works. We strongly believe that having everything in one place, where the focus is *ease of understanding* as opposed to efficiency, is very helpful. This is similar in philosophy to STARK 101. Finally, some loops are unrolled, such as when computing FRI layers. This allows us to give a name to each FRI layer, and makes the number of layers explicit. We believe this can help readers identify shortcomings in their understanding. Maybe they expected there to be 4 layers, where in reality there are 3; they probably wouldn't have realized that if we stored the layers as `Vec<FriLayer>`.
 
+## Discussion
+In this section we will discuss important topics in detail. We will focus on the ones that weren't fully explored in STARK 101.
+
+### The Channel abstraction
+The `Channel`, defined in `src/channel.rs`, is the type that implements the Fiat-Shamir transform. You will find an equivalent type both in STARK 101 and Winterfell. It is a core piece of the STARK implementations.
+
+The Fiat-Shamir transform is a widely used technique to convert an interactive protocol into a non-interactive one. STARKs are defined as an interactive protocol turned non-interactive using the Fiat-Shamir transform. I recommend watching the first 7 minutes of [this video](https://youtu.be/9cagVtYstyY?si=85sINdOOvwxhTRio) to get a concise description of the Fiat-Shamir transform.
+
+The `Channel` works in the following way. Creating a `Channel` with `Channel::new()` initializes it with a fixed value (currently the hash of 42). The prover can send messages to the verifier using `Channel::commit()`. Internally, this updates the `Channel`'s state by hashing the prover's message with its current state. Then, a verifier can send messages back (which as mentioned in the video are defined to be uniformly random values in an Interactive Argument) with either `Channel::random_element()` or `Channel::random_integer()`. This works simply by interpreting the `Channel`'s current hash as a field element or an integer, respectively. We then make sure to update the internal hash to a new value so that the `random_*()` methods can be called multiple times and return different values for each call.
+
+The `Channel` is a very clean abstraction to turn an interactive protocol into a non-interactive one. You should now go re-read the implementation of `prover::generate_proof()`, and pay attention to all the calls to `channel.commit()` and `channel.random_element()`/`channel.random_integer()`. In your head, you should now see those as messages being sent back and forth between the prover and the verifier!
+
+Finally, let's turn our attention to how the verifier uses the `Channel` in `verifier::verify()`. First, it must interact with the `Channel` in exactly the same way that the prover did. That way, it ensures to draw the same values from `Channel::random_element()` and `Channel::random_integer()`. This is critical. Notice that the random values (from `random_element/integer()`) are *not* included in the `StarkProof`. Rather, they are re-derived by the verifier. Pause and ponder why this is the only way that the verifier can ensure that the values are indeed random, and that the prover didn't pick convenient values. Think about how the prover could trick the verifier if all "random" values were included in the `StarkProof` as opposed to being rederived by the verifier.
 
 # TODO
 + Talk about some terms I'll see in winterfell (folding factor, blowup factor, etc), and what those values are in this example
     + blowup factor: the domain size multiplier during LDE (here: 2)
     + folding factor: by how much you divide in-betIen each FRI layer (here: 2)
 + Explain the Scalable and Transparent parts
-+ Talk about the channel
-    + Notably, the pseudorandom params are *not* in the `StarkProof` struct; they're rederived by the verifier.
 + The verifier checks the evaluation *at a point* (the "query point")
     + Give the intuition why this works (LDE, etc)
     + to increase security, do more queries
@@ -41,3 +52,4 @@ Where appropriate, we choose the simpler of 2 valid options. For example, we use
     + Initialize channel with public param instead of `CHANNEL_SALT`
 + Describe repo layout, and how to navigate it?
 + If something is unclear, please open an issue and we'll improve the docs
++ Note: maybe blake3 doesn't have good properties. It was an arbitrary choice, and not important to get the point across

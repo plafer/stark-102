@@ -38,10 +38,6 @@ pub fn generate_proof() -> StarkProof {
 
     channel.commit(cp_lde_merkleized.root);
 
-    // TODO: Describe in the README the intuition of the channel. How it can be
-    // thought of as an interactive protocol between the prover and verifier,
-    // but made non-interactive using the Fiat-Shamir trick.
-
     // FRI
     let beta_fri_deg_1 = channel.random_element();
     let (domain_deg_1, fri_layer_deg_1_poly) = fri_step(&DOMAIN_LDE, cp.clone(), beta_fri_deg_1);

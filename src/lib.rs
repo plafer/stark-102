@@ -70,9 +70,6 @@ pub struct ProofQueryPhase {
     // `composition_polynomial(-x)` (degree 3)
     pub cp_minus_x: (BaseField, MerklePath),
 
-    // FIXME: Stark 101 sends these values in the channel. Is this necessary?
-    // Does winterfell do that? Why/why not?
-
     // fri_layer_deg_1_eval(-x^4)
     pub fri_layer_deg_1_minus_x: (BaseField, MerklePath),
 

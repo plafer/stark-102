@@ -6,7 +6,8 @@ use crate::field::BaseField;
 /// channel is initialized with the public inputs, but we don't have any.
 const CHANNEL_SALT: [u8; 1] = [42u8];
 
-/// A Channel implements the Fiat-Shamir heuristic.
+/// A Channel implements the Fiat-Shamir transform. See the README for more
+/// information.
 #[derive(Debug)]
 pub struct Channel {
     current_hash: Hash,
@@ -23,6 +24,7 @@ impl Channel {
         }
     }
 
+    /// Captures a message sent from the prover to the verifier.
     pub fn commit(&mut self, commitment: Hash) {
         self.commitments.push(commitment);
 
@@ -34,6 +36,8 @@ impl Channel {
     }
 
     /// Draws a random element from `BaseField` (i.e. a number between 0 and 16).
+    /// 
+    /// Captures a message sent from the verifier to the prover.
     pub fn random_element(&mut self) -> BaseField {
         let hash_first_4_bytes: [u8; 4] = self.current_hash.as_bytes()[0..4].try_into().unwrap();
         let ret_element: BaseField = i32::from_le_bytes(hash_first_4_bytes).into();
@@ -44,6 +48,8 @@ impl Channel {
     }
 
     /// Draws a random integer (uniformly distributed) in the range [0, upper_bound-1].
+    /// 
+    /// Captures a message sent from the verifier to the prover.
     pub fn random_integer(&mut self, upper_bound: u8) -> u8 {
         let hash_first_byte: [u8; 1] = self.current_hash.as_bytes()[0..1].try_into().unwrap();
         let ret_element = u8::from_le_bytes(hash_first_byte) % upper_bound;
