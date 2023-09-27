@@ -67,10 +67,3 @@ Essentially, modify the codebase to make the first value in the sequence any val
 + Change `constraints::boundary_constraint()` to take a parameter `x: BaseField`
     + Hint: you will need to implement polynomial division
 + We can now make `Channel::new()` to take the parameter `x: Basefield`, and initialize the hash using `x` as opposed to `CHANNEL_SALT`.
-
-# TODO
-+ Talk about some terms I'll see in winterfell (folding factor, blowup factor, etc), and what those values are in this example
-    + blowup factor: the domain size multiplier during LDE (here: 2)
-    + folding factor: by how much you divide in-betIen each FRI layer (here: 2)
-+ Explain the Scalable and Transparent parts
-+ Note: maybe blake3 doesn't have good properties. It was an arbitrary choice, and not important to get the point across
