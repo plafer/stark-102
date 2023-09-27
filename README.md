@@ -59,8 +59,10 @@ There's nothing like getting your hands dirty to truly understand something, and
 I computed the following sequence:
 
 $$
-a_0 = x            \\
-a_{n+1} = (a_n)^2  \\
+\begin{align}
+& a_0 = x            \\
+& a_{n+1} = (a_n)^2  
+\end{align}
 $$
 
 over the prime field `F_p` with prime 17, for some public `x ∈ F_p`.
