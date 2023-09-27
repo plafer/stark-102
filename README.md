@@ -11,8 +11,8 @@ Specifically, we implement a STARK that proves the following statement:
 I computed the following sequence:
 
 $$
-a_0 = 3
-a_{n+1} = (a_n)^2
+a_0 = 3            \\
+a_{n+1} = (a_n)^2  \\
 $$
 
 over the prime field with prime 17. 
@@ -57,8 +57,8 @@ There's nothing like getting your hands dirty to truly understand something, and
 I computed the following sequence:
 
 $$
-a_0 = x
-a_{n+1} = (a_n)^2
+a_0 = x            \\
+a_{n+1} = (a_n)^2  \\
 $$
 
 over the prime field `F_p` with prime 17, for some public `x ∈ F_p`.
