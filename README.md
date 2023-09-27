@@ -42,14 +42,28 @@ The `Channel` is a very clean abstraction to turn an interactive protocol into a
 
 Finally, let's turn our attention to how the verifier uses the `Channel` in `verifier::verify()`. First, it must interact with the `Channel` in exactly the same way that the prover did. That way, it ensures to draw the same values from `Channel::random_element()` and `Channel::random_integer()`. This is critical. Notice that the random values (from `random_element/integer()`) are *not* included in the `StarkProof`. Rather, they are re-derived by the verifier. Pause and ponder why this is the only way that the verifier can ensure that the values are indeed random, and that the prover didn't pick convenient values. Think about how the prover could trick the verifier if all "random" values were included in the `StarkProof` as opposed to being rederived by the verifier.
 
+## Exercise to the reader
+There's nothing like getting your hands dirty to truly understand something, and hence this exercise. We modify the original statement to:
+
+I computed the following sequence:
+
+$$
+a_0 = x
+a_{n+1} = (a_n)^2
+$$
+
+over the prime field `F_p` with prime 17, for some public `x ∈ F_p`.
+
+Essentially, modify the codebase to make the first value in the sequence any value in the set `{0, ..., 16}`. Or in other words, any element of `BaseField`. Notably, this will require you to
++ Change `constraints::boundary_constraint()` to take a parameter `x: BaseField`
+    + Hint: you will need to implement polynomial division
++ We can now make `Channel::new()` to take the parameter `x: Basefield`, and initialize the hash using `x` as opposed to `CHANNEL_SALT`.
+
 # TODO
 + Talk about some terms I'll see in winterfell (folding factor, blowup factor, etc), and what those values are in this example
     + blowup factor: the domain size multiplier during LDE (here: 2)
     + folding factor: by how much you divide in-betIen each FRI layer (here: 2)
 + Explain the Scalable and Transparent parts
-+ Reader challenge: Make `3` a public param. Requires
-    + changing boundary constraint (hint: you will need to implement polynomial division)
-    + Initialize channel with public param instead of `CHANNEL_SALT`
 + Describe repo layout, and how to navigate it?
 + If something is unclear, please open an issue and we'll improve the docs
 + Note: maybe blake3 doesn't have good properties. It was an arbitrary choice, and not important to get the point across
