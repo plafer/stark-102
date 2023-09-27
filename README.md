@@ -2,6 +2,8 @@
 
 This repository contains an implementation of a STARK, and serves as an accompanying codebase to the excellent [Diving DEEP FRI in the STARK world](https://blog.lambdaclass.com/diving-deep-fri/) blog post by LambdaClass. It is called STARK 102 as it is meant to be a follow-up to Starkware's [STARK 101](https://starkware.co/stark-101/). Ultimately, the goal for this repository is to serve as a stepping stone to understanding and contributing to real world STARK libraries such as [Winterfell](https://github.com/facebook/winterfell).
 
+Please open an issue or start a new Discussion if anything is not clear and requires further explanation. If something is confusing to you, it probably is for many others! We'll gladly use the feedback to improve the documentation.
+
 ## Problem statement 
 
 Specifically, we implement a STARK that proves the following statement:
@@ -65,5 +67,4 @@ Essentially, modify the codebase to make the first value in the sequence any val
     + folding factor: by how much you divide in-betIen each FRI layer (here: 2)
 + Explain the Scalable and Transparent parts
 + Describe repo layout, and how to navigate it?
-+ If something is unclear, please open an issue and we'll improve the docs
 + Note: maybe blake3 doesn't have good properties. It was an arbitrary choice, and not important to get the point across
