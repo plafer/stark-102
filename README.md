@@ -53,6 +53,46 @@ The `Channel` is a very clean abstraction to turn an interactive protocol into a
 
 Finally, let's turn our attention to how the verifier uses the `Channel` in `verifier::verify()`. First, it must interact with the `Channel` in exactly the same way that the prover did. That way, it ensures to draw the same values from `Channel::random_element()` and `Channel::random_integer()`. This is critical. Notice that the random values (from `random_element/integer()`) are *not* included in the `StarkProof`. Rather, they are re-derived by the verifier. Pause and ponder why this is the only way that the verifier can ensure that the values are indeed random, and that the prover didn't pick convenient values. Think about how the prover could trick the verifier if all "random" values were included in the `StarkProof` as opposed to being rederived by the verifier.
 
+### Q: How does the verifier ensure that the prover interpolated the trace polynomial over the predetermined DOMAIN_TRACE?
+
+The STARK protocol states that the prover should
+
+1. Run the program and record the 4-element trace $T$
+2. Interpolate a polynomial $P_T$ that maps the elements of [`DOMAIN_TRACE`](https://github.com/plafer/stark-102/blob/d56243a1d37f398d417c656a9723d1e21e5f7ff3/src/domain.rs#L8) to $T$
+    + That is, $P_T: BaseField \rightarrow BaseField$ is a polynomial such that 
+        + $P_T(1) = T[0]$, 
+        + $P_T(13) = T[1]$,
+        + $P_T(16) = T[2]$, and 
+        + $P_T(4) = T[3]$
+3. Evaluate $P_T$ over [`DOMAIN_LDE`](https://github.com/plafer/stark-102/blob/d56243a1d37f398d417c656a9723d1e21e5f7ff3/src/domain.rs#L44-L55) and use that "extended trace" in the rest of the protocol.
+
+This part of the protocol is crucial for the zero-knowledge property. That is, by evaluating over `DOMAIN_LDE` and committing to that instead of the evaluations over `DOMAIN_TRACE`, we ensure to not leak any of the elements of the original trace. However, how does the verifier know that the prover indeed executed step 2 properly? Specifically, how does it know that the prover used `DOMAIN_TRACE` as a domain for interpolating the polynomial, as opposed to any other domain? In other words, what part of the verifier's algorithm will fail if the prover uses a different `DOMAIN_TRACE`? Try to [answer on your own](https://terrytao.wordpress.com/career-advice/ask-yourself-dumb-questions-and-answer-them/)!
+
+<details>
+<summary>Show answer</summary>
+
+The key is to realize that the original domain is encoded in the boundary and transition constraints. As a reminder,
+
++ **boundary constraint:**
+$
+C_1(x) = \frac{P_T(x) - 3}{x - \text{DOMAIN\_TRACE}[0]}
+$
+is a polynomial
+
++ **transition constraint:**
+$
+C_2(x) = \frac{P_T(gx) - P_T(x)}{(x - \text{DOMAIN\_TRACE}[0])(x - \text{DOMAIN\_TRACE}[1])(x - \text{DOMAIN\_TRACE}[2])}
+$
+is a polynomial
+
+So what will go wrong if the prover interpolated $P_T$ over a different domain? Let's focus on the boundary constraint for the argument; the transition constraint will fail for exactly the same reason.
+
+Well, this other polynomial (call it $H_T$) will have totally different coefficients, and will have different zeros of $P_T$. And it will almost certainly not evaluate to 0 when evaluated at `DOMAIN_TRACE[0]`, and hence $C_1(x)$ will *not* be a polynomial (why this is true is explained in STARK 101). If for the purpose of this discussion we take for granted that FRI will fail if $C_1(x)$ is not a polynomial, then verification will fail.
+
+**Follow-up question**: Can you identify *how* FRI will fail when you feed in a $C_1(x)$ which is not a polynomial?
+
+</details>
+
 ## Exercise to the reader
 There's nothing like getting your hands dirty to truly understand something, and hence this exercise. We modify the original statement to:
 
