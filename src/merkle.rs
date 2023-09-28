@@ -132,7 +132,6 @@ impl MerkleTree {
 
                     internal_node
                 })
-                // FIXME: Find a better way than to collect() on every iteration
                 .collect();
         }
 

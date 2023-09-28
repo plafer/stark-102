@@ -61,7 +61,6 @@ pub struct ProofQueryPhase {
     // TODO Q: How does verifier ensure that this is the queried element (i.e. at the
     // expected index)?
     // A: When it will check that CP(x) is as expected, it will use x = g^idx. So if the prover sent the wrong t(x), the verifier's check will fail.
-    // Note: To check that CP(x) is as expected, the verifier needs a separate function to rebuild the CP. That is, it shouldn't cancel out anything. It should evaluate the "long form" of the boundary and transition constraints, and make sure everything checks out.
     pub trace_x: (BaseField, MerklePath),
 
     // trace(gx); where g is the generator for the original domain (size 4)
