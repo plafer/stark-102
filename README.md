@@ -73,17 +73,9 @@ This part of the protocol is crucial for the zero-knowledge property. That is, b
 
 The key is to realize that the original domain is encoded in the boundary and transition constraints. As a reminder,
 
-+ **boundary constraint:**
-$
-C_1(x) = \frac{P_T(x) - 3}{x - \text{DOMAIN\_TRACE}[0]}
-$
-is a polynomial
++ **boundary constraint:** $C_1(x) = \frac{P_T(x) - 3}{x - \text{DOMAIN\_TRACE}[0]}$ is a polynomial
 
-+ **transition constraint:**
-$
-C_2(x) = \frac{P_T(gx) - P_T(x)}{(x - \text{DOMAIN\_TRACE}[0])(x - \text{DOMAIN\_TRACE}[1])(x - \text{DOMAIN\_TRACE}[2])}
-$
-is a polynomial
++ **transition constraint:** $C_2(x) = \frac{P_T(gx) - P_T(x)}{(x - \text{DOMAIN\_TRACE}[0])(x - \text{DOMAIN\_TRACE}[1])(x - \text{DOMAIN\_TRACE}[2])}$ is a polynomial
 
 So what will go wrong if the prover interpolated $P_T$ over a different domain? Let's focus on the boundary constraint for the argument; the transition constraint will fail for exactly the same reason.
 
