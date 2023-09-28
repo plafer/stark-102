@@ -73,7 +73,7 @@ This part of the protocol is crucial for the zero-knowledge property. That is, b
 
 The key is to realize that the original domain is encoded in the boundary and transition constraints. As a reminder,
 
-+ **boundary constraint:** $C_1(x) = \frac{P_T(x) - 3}{x - \texttt{DOMAIN&#95;TRACE}[0]}$ is a polynomial
++ **boundary constraint:** $C_1(x) = \frac{P_T(x) - 3}{x - \texttt{DOMAIN\\_TRACE}[0]}$ is a polynomial
 
 + **transition constraint:** $C_2(x) = \frac{P_T(gx) - P_T(x)}{(x - \text{DOMAIN\_TRACE}[0])(x - \text{DOMAIN\_TRACE}[1])(x - \mathrm{DOMAIN_TRACE}[2])}$ is a polynomial
 
