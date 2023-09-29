@@ -54,7 +54,7 @@ The `Channel` is a very clean abstraction to turn an interactive protocol into a
 Finally, let's turn our attention to how the verifier uses the `Channel` in `verifier::verify()`. First, it must interact with the `Channel` in exactly the same way that the prover did. That way, it ensures to draw the same values from `Channel::random_element()` and `Channel::random_integer()`. This is critical. Notice that the random values (from `random_element/integer()`) are *not* included in the `StarkProof`. Rather, they are re-derived by the verifier. Pause and ponder why this is the only way that the verifier can ensure that the values are indeed random, and that the prover didn't pick convenient values. Think about how the prover could trick the verifier if all "random" values were included in the `StarkProof` as opposed to being rederived by the verifier.
 
 ### Why the prover doesn't need to send the Merkle commitment and proof of the last FRI layer
-You might have noticed that we don't send a `MerkleRoot` of the last FRI layer of degree 0, and hence nor don't we send a `MerklePath` along with the [last queried element](https://github.com/plafer/stark-102/blob/d18fb008cd16ec68c9e4bb1ce87ec1ac5eb78bed/src/lib.rs#L55).
+You might have noticed that we don't send a `MerkleRoot` of the last FRI layer of degree 0, and hence nor don't we send a `MerklePath` along with the [last queried element](https://github.com/plafer/stark-102/blob/740b6f5c56eb07d465d1772d9743f2af017c5dfc/src/lib.rs#L46).
 
 The last layer (degree 0) has 2 elements that have the same value (remember: a
 degree 0 polynomial is a constant function `f(x) = c`). We don't build a Merkle
@@ -63,10 +63,10 @@ right value for the last layer to the verifier (if it doesn't the proof fails
 anyway), then the Merkle root is deterministic and doesn't provide any
 information.
 
-Try it yourself. Build a Merkle tree of 2 or 4 of the same elements, and build a `MerklePath` for each of them. Notice that all the `MerklePath`s are equal. Hence, in the scenario that we sent a `MerklePath` along with the element of the last FRI layer, the verifier could take the value that it expects for the last layer ([here](https://github.com/plafer/stark-102/blob/d18fb008cd16ec68c9e4bb1ce87ec1ac5eb78bed/src/verifier.rs#L125)), build the `MerklePath` itself, and ensure that the `MerklePath` it got is equal to the one included in the proof. But, it might as well do the equality check on the value directly; why bother with the `MerklePath`? This is the intuition behind what it means to "not provide any information".
+Try it yourself. Build a Merkle tree of 2 or 4 of the same elements, and build a `MerklePath` for each of them. Notice that all the `MerklePath`s are equal. Hence, in the scenario that we sent a `MerklePath` along with the element of the last FRI layer, the verifier could take the value that it expects for the last layer ([here](https://github.com/plafer/stark-102/blob/740b6f5c56eb07d465d1772d9743f2af017c5dfc/src/verifier.rs#L125)), build the `MerklePath` itself, and ensure that the `MerklePath` it got is equal to the one included in the proof. But, it might as well do the equality check on the value directly; why bother with the `MerklePath`? This is the intuition behind what it means to "not provide any information".
 
 ### Prover query phase: computing the correct indices
-When constructing the query phase of the proof, the prover needs to send $layer(x)$ and $layer(-x)$ for each FRI layer, where $layer$ is the polynomial of a given FRI layer. However, it must also send the Merkle proof for $layer(-x)$. Therefore, it must know the index in the FRI layer evaluations which corresponds to $layer(-x)$ so that it can [construct that Merkle proof](https://github.com/plafer/stark-102/blob/d18fb008cd16ec68c9e4bb1ce87ec1ac5eb78bed/src/merkle.rs#L27). This is done [here](https://github.com/plafer/stark-102/blob/d18fb008cd16ec68c9e4bb1ce87ec1ac5eb78bed/src/prover.rs#L159). Then, it must also compute the index of $next_layer(x^2)$, where $next_layer$ is the polynomial of the next FRI layer. This is done [here](https://github.com/plafer/stark-102/blob/d18fb008cd16ec68c9e4bb1ce87ec1ac5eb78bed/src/prover.rs#L172).
+When constructing the query phase of the proof, the prover needs to send $layer(x)$ and $layer(-x)$ for each FRI layer, where $layer$ is the polynomial of a given FRI layer. However, it must also send the Merkle proof for $layer(-x)$. Therefore, it must know the index in the FRI layer evaluations which corresponds to $layer(-x)$ so that it can [construct that Merkle proof](https://github.com/plafer/stark-102/blob/740b6f5c56eb07d465d1772d9743f2af017c5dfc/src/merkle.rs#L27). This is done [here](https://github.com/plafer/stark-102/blob/740b6f5c56eb07d465d1772d9743f2af017c5dfc/src/prover.rs#L161). Then, it must also compute the index of $next_layer(x^2)$, where $next_layer$ is the polynomial of the next FRI layer. This is done [here](https://github.com/plafer/stark-102/blob/740b6f5c56eb07d465d1772d9743f2af017c5dfc/src/prover.rs#L171).
 
 Both of these problems are solved in STARK 101, but not explained. Explaining *why* the way we compute these is correct is the goal of this section.
 
@@ -153,13 +153,13 @@ As an exercise (very similar to the previous one), you can show why this is true
 The STARK protocol states that the prover should
 
 1. Run the program and record the 4-element trace $T$
-2. Interpolate a polynomial $P_T$ that maps the elements of [`DOMAIN_TRACE`](https://github.com/plafer/stark-102/blob/d56243a1d37f398d417c656a9723d1e21e5f7ff3/src/domain.rs#L8) to $T$
+2. Interpolate a polynomial $P_T$ that maps the elements of [`DOMAIN_TRACE`](https://github.com/plafer/stark-102/blob/740b6f5c56eb07d465d1772d9743f2af017c5dfc/src/domain.rs#L8) to $T$
     + That is, $P_T: BaseField \rightarrow BaseField$ is a polynomial such that 
         + $P_T(1) = T[0]$, 
         + $P_T(13) = T[1]$,
         + $P_T(16) = T[2]$, and 
         + $P_T(4) = T[3]$
-3. Evaluate $P_T$ over [`DOMAIN_LDE`](https://github.com/plafer/stark-102/blob/d56243a1d37f398d417c656a9723d1e21e5f7ff3/src/domain.rs#L44-L55) and use that "extended trace" in the rest of the protocol.
+3. Evaluate $P_T$ over [`DOMAIN_LDE`](https://github.com/plafer/stark-102/blob/740b6f5c56eb07d465d1772d9743f2af017c5dfc/src/domain.rs#L44-L55) and use that "extended trace" in the rest of the protocol.
 
 This part of the protocol is crucial for the zero-knowledge property. That is, by evaluating over `DOMAIN_LDE` and committing to that instead of the evaluations over `DOMAIN_TRACE`, we ensure to not leak any of the elements of the original trace. However, how does the verifier know that the prover indeed executed step 2 properly? Specifically, how does it know that the prover used `DOMAIN_TRACE` as a domain for interpolating the polynomial, as opposed to any other domain? In other words, what part of the verifier's algorithm will fail if the prover uses a different `DOMAIN_TRACE`? Try to [answer on your own](https://terrytao.wordpress.com/career-advice/ask-yourself-dumb-questions-and-answer-them/)!
 
@@ -182,7 +182,7 @@ Well, this other polynomial (call it $H_T$) will have totally different coeffici
 
 ### Q: At query time, how does the verifier ensure that the prover sent the trace element at the requested query index?
 
-At query time, the verifier [sends to the prover the "query index"](https://github.com/plafer/stark-102/blob/d18fb008cd16ec68c9e4bb1ce87ec1ac5eb78bed/src/prover.rs#L81) (i.e. the index in the extended trace that the prover needs to send to the verifier). The (honest) prover sends [that value, along with a proof](https://github.com/plafer/stark-102/blob/d18fb008cd16ec68c9e4bb1ce87ec1ac5eb78bed/src/prover.rs#L148-L150) that the value is indeed in the extended trace. However, the Merkle proof only proves that the value sent is *somewhere* in the trace, but it doesn't prove that the value is indeed the value at the queried index. How does the verifier then ensure that the prover did indeed send the value at the queried index?
+At query time, the verifier [sends to the prover the "query index"](https://github.com/plafer/stark-102/blob/740b6f5c56eb07d465d1772d9743f2af017c5dfc/src/prover.rs#L81) (i.e. the index in the extended trace that the prover needs to send to the verifier). The (honest) prover sends [that value, along with a proof](https://github.com/plafer/stark-102/blob/740b6f5c56eb07d465d1772d9743f2af017c5dfc/src/prover.rs#L150-L152) that the value is indeed in the extended trace. However, the Merkle proof only proves that the value sent is *somewhere* in the trace, but it doesn't prove that the value is indeed the value at the queried index. How does the verifier then ensure that the prover did indeed send the value at the queried index?
 
 <details>
 <summary>Show answer</summary>
@@ -191,9 +191,9 @@ The answer lies in the fact that the verifier will use the queried index when ve
 
 + **boundary constraint:** $C_1(x) = \frac{P_T(x) - 3}{x - \texttt{DOMAIN\\_TRACE}[0]}$ is a polynomial
 
-The key lies in remembering that the verifier [queries a random `x`](https://github.com/plafer/stark-102/blob/d18fb008cd16ec68c9e4bb1ce87ec1ac5eb78bed/src/verifier.rs#L92) (derived directly from the queried index), which it uses to evaluate the boundary and transition constraints (and all the way down to the [last FRI layer](https://github.com/plafer/stark-102/blob/d18fb008cd16ec68c9e4bb1ce87ec1ac5eb78bed/src/verifier.rs#L134)). If the prover sent `P_T(x')` (where $x'$ corresponds to a different query index), then the equations simply won't check out, and the [final check](https://github.com/plafer/stark-102/blob/d18fb008cd16ec68c9e4bb1ce87ec1ac5eb78bed/src/verifier.rs#L134) will fail.
+The key lies in remembering that the verifier [queries a random `x`](https://github.com/plafer/stark-102/blob/740b6f5c56eb07d465d1772d9743f2af017c5dfc/src/verifier.rs#L92) (derived directly from the queried index), which it uses to evaluate the boundary and transition constraints (and all the way down to the [last FRI layer](https://github.com/plafer/stark-102/blob/740b6f5c56eb07d465d1772d9743f2af017c5dfc/src/verifier.rs#L134)). If the prover sent `P_T(x')` (where $x'$ corresponds to a different query index), then the equations simply won't check out, and the [final check](https://github.com/plafer/stark-102/blob/740b6f5c56eb07d465d1772d9743f2af017c5dfc/src/verifier.rs#L134) will fail.
 
-If this is not totally clear to you, then try it out! Write a malicious prover which when the verifier queries `query_idx`, the malicious prover supplies the value at index `query_idx + 1`. This should be a very small modification from the existing prover. Then add print statements to the verifier, run the [`proof_verification` test](https://github.com/plafer/stark-102/blob/d18fb008cd16ec68c9e4bb1ce87ec1ac5eb78bed/src/lib.rs#L72), and try to get an intuitive sense of exactly *where* and *why* things go wrong. Notably, confirm that the Merkle proof verification checks out just fine.
+If this is not totally clear to you, then try it out! Write a malicious prover which when the verifier queries `query_idx`, the malicious prover supplies the value at index `query_idx + 1`. This should be a very small modification from the existing prover. Then add print statements to the verifier, run the [`proof_verification` test](https://github.com/plafer/stark-102/blob/740b6f5c56eb07d465d1772d9743f2af017c5dfc/src/lib.rs#L63-L68), and try to get an intuitive sense of exactly *where* and *why* things go wrong. Notably, confirm that the Merkle proof verification checks out just fine.
 
 </details>
 
