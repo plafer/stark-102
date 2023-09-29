@@ -66,14 +66,14 @@ information.
 Try it yourself. Build a Merkle tree of 2 or 4 of the same elements, and build a `MerklePath` for each of them. Notice that all the `MerklePath`s are equal. Hence, in the scenario that we sent a `MerklePath` along with the element of the last FRI layer, the verifier could take the value that it expects for the last layer ([here](https://github.com/plafer/stark-102/blob/740b6f5c56eb07d465d1772d9743f2af017c5dfc/src/verifier.rs#L125)), build the `MerklePath` itself, and ensure that the `MerklePath` it got is equal to the one included in the proof. But, it might as well do the equality check on the value directly; why bother with the `MerklePath`? This is the intuition behind what it means to "not provide any information".
 
 ### Prover query phase: computing the correct indices
-When constructing the query phase of the proof, the prover needs to send $layer(x)$ and $layer(-x)$ for each FRI layer, where $layer$ is the polynomial of a given FRI layer. However, it must also send the Merkle proof for $layer(-x)$. Therefore, it must know the index in the FRI layer evaluations which corresponds to $layer(-x)$ so that it can [construct that Merkle proof](https://github.com/plafer/stark-102/blob/740b6f5c56eb07d465d1772d9743f2af017c5dfc/src/merkle.rs#L27). This is done [here](https://github.com/plafer/stark-102/blob/740b6f5c56eb07d465d1772d9743f2af017c5dfc/src/prover.rs#L161). Then, it must also compute the index of $\texttt{next\\_layer}(x^2)$, where $\texttt{next\\_layer}$ is the polynomial of the next FRI layer. This is done [here](https://github.com/plafer/stark-102/blob/740b6f5c56eb07d465d1772d9743f2af017c5dfc/src/prover.rs#L171).
+When constructing the query phase of the proof, the prover needs to send $\texttt{layer}(x)$ and $\texttt{layer}(-x)$ for each FRI layer, where $\texttt{layer}$ is the polynomial of a given FRI layer. However, it must also send the Merkle proof for $\texttt{layer}(-x)$. Therefore, it must know the index in the FRI layer evaluations which corresponds to $\texttt{layer}(-x)$ so that it can [construct that Merkle proof](https://github.com/plafer/stark-102/blob/740b6f5c56eb07d465d1772d9743f2af017c5dfc/src/merkle.rs#L27). This is done [here](https://github.com/plafer/stark-102/blob/740b6f5c56eb07d465d1772d9743f2af017c5dfc/src/prover.rs#L161). Then, it must also compute the index of $\texttt{next\\_layer}(x^2)$, where $\texttt{next\\_layer}$ is the polynomial of the next FRI layer. This is done [here](https://github.com/plafer/stark-102/blob/740b6f5c56eb07d465d1772d9743f2af017c5dfc/src/prover.rs#L171).
 
 Both of these problems are solved in STARK 101, but not explained. Explaining *why* the way we compute these is correct is the goal of this section.
 
-#### Computing the index of $layer(-x)$
-If the FRI layer has $N$ elements, and the index of $layer(x)$ is $idx$, then the index of $layer(-x)$ is $idx + (N/2) % N$. We'll explore why that is in two stages. First, we'll make sure that it makes sense by looking at actual values. Then, we'll show a proof for why it works when the prime is 17 (as is the case for our problem). This turns out to hold for all [Proth primes](https://en.wikipedia.org/wiki/Proth_prime), but we will not show that here.
+#### Computing the index of $\texttt{layer}(-x)$
+If the FRI layer has $N$ elements, and the index of $\texttt{layer}(x)$ is $\texttt{idx}$, then the index of $\texttt{layer}(-x)$ is $idx + (N/2) % N$. We'll explore why that is in two stages. First, we'll make sure that it makes sense by looking at actual values. Then, we'll show a proof for why it works when the prime is 17 (as is the case for our problem). This turns out to hold for all [Proth primes](https://en.wikipedia.org/wiki/Proth_prime), but we will not show that here.
 
-The first thing to realize is that computing the index of $layer(-x)$ based on the index of $layer(x)$ is the same as computing the index of $-x$ based on the index of $x$. Make sure you convince yourself that this is the case. Remember that $-x$ is defined as $x + (-x) = 0$; that is, for any $x$, $-x$ is the field element that when added to $x$ yields $0$. 
+The first thing to realize is that computing the index of $\texttt{layer}(-x)$ based on the index of $\texttt{layer}(x)$ is the same as computing the index of $-x$ based on the index of $x$. Make sure you convince yourself that this is the case. Remember that $-x$ is defined as $x + (-x) = 0$; that is, for any $x$, $-x$ is the field element that when added to $x$ yields $0$. 
 
 Let's start with the first FRI layer (degree 3), the LDE domain.
 
@@ -89,7 +89,7 @@ $$
 [9, 15, 8, 2]
 $$
 
-The relationship holds once more. $9 + 8 = 0$, and $15 + 2 = 0$. Even though we don't compute the index of $layer(-x)$ for the last layer, let's still make sure that the relationship holds as expected.
+The relationship holds once more. $9 + 8 = 0$, and $15 + 2 = 0$. Even though we don't compute the index of $\texttt{layer}(-x)$ for the last layer, let's still make sure that the relationship holds as expected.
 
 $$
 [13, 4]
@@ -114,7 +114,7 @@ $$
 g^i + g^{i+4} = g^i + g^i \times g^4 = g^i(1 + 16) = g^i \times 0 = 0
 $$
 
-Hence, $g^{i+4}$ is the additive inverse of $g^i$. But, notice that $g^i$ is at index $i$ in $D_0$, and $g^{i+4}$ is at index $i+4$. Therefore, we just showed that if $x$ is at index $i$, then $-x$ is at index $i+4$. And it follows that if $layer(x)$ is at index $i$, $layer(-x)$ is at index $i+4$!
+Hence, $g^{i+4}$ is the additive inverse of $g^i$. But, notice that $g^i$ is at index $i$ in $D_0$, and $g^{i+4}$ is at index $i+4$. Therefore, we just showed that if $x$ is at index $i$, then $-x$ is at index $i+4$. And it follows that if $\texttt{layer}(x)$ is at index $i$, $\texttt{layer}(-x)$ is at index $i+4$!
 
 Can you show that $3g^i$ instead of $g^i$ doesn't change this result?
 
@@ -130,8 +130,8 @@ Notice once again that $g_1^{N_1 / 2} = 13^2 = 16$. We're back where we started!
 
 This completes the proof sketch. As an exercise, use this proof sketch to write a complete [proof by induction](https://en.wikipedia.org/wiki/Mathematical_induction).
 
-#### Compute the index of $next\_layer(x^2)$
-Let $FRI_0$ be the array of $N=8$ elements representing the evaluations of the composition polynomial over the LDE domain. The verifier queried for $x$ at index $idx$. We want to show why the index of $FRI_1[x^2]$ is $idx \mod{N/2}$, where $FRI_1$ is the array of $N_1=4$ elements representing the evaluations of the next FRI layer. We will only do a proof sketch. Similar to the previous proof, we will work with $D_0 = \{g^0, ..., g^7\}$ instead of $LDE$ because it makes the proof easier to follow, and the "shift by 3" doesn't change the result.
+#### Compute the index of $\texttt{next\\_layer(x^2)}$
+Let $FRI_0$ be the array of $N=8$ elements representing the evaluations of the composition polynomial over the LDE domain. The verifier queried for $x$ at index $\texttt{idx}$. We want to show why the index of $FRI_1[x^2]$ is $idx \mod{N/2}$, where $FRI_1$ is the array of $N_1=4$ elements representing the evaluations of the next FRI layer. We will only do a proof sketch. Similar to the previous proof, we will work with $D_0 = \{g^0, ..., g^7\}$ instead of $LDE$ because it makes the proof easier to follow, and the "shift by 3" doesn't change the result.
 
 Remember that by definition of being a generator of $D_0$, $g^8 = 1$. Remember also that we compute the domain of the next FRI layer by squaring each elements, and taking the first (or second) half of the resulting array. Let's first show why the first and second half of the squared domain $(D_0)^2$ are equal.
 
