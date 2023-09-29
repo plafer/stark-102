@@ -134,6 +134,8 @@ fn fri_step(
     (next_domain, polynomial.fri_step(beta))
 }
 
+/// For an in-depth discussion of how we compute indices in this function, see
+/// the README's section "Prover query phase: computing the correct indices"
 #[allow(clippy::too_many_arguments)]
 fn generate_query_phase(
     query_idx: usize,

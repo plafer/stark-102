@@ -70,6 +70,70 @@ When constructing the query phase of the proof, the prover needs to send $layer(
 
 Both of these problems are solved in STARK 101, but not explained. Explaining *why* the way we compute these is correct is the goal of this section.
 
+#### Computing the index of $layer(-x)$
+If the FRI layer has $N$ elements, and the index of $layer(x)$ is $idx$, then the index of $layer(-x)$ is $idx + (N/2) % N$. We'll explore why that is in two stages. First, we'll make sure that it makes sense by looking at actual values. Then, we'll show a proof for why it works when the prime is 17 (as is the case for our problem). This turns out to hold for all [Proth primes](https://en.wikipedia.org/wiki/Proth_prime), but we will not show that here.
+
+The first thing to realize is that computing the index of $layer(-x)$ based on the index of $layer(x)$ is the same as computing the index of $-x$ based on the index of $x$. Make sure you convince yourself that this is the case. Remember that $-x$ is defined as $x + (-x) = 0$; that is, for any $x$, $-x$ is the field element that when added to $x$ yields $0$. 
+
+Let's start with the first FRI layer (degree 3), the LDE domain.
+
+$$
+[3, 10, 5, 11, 14, 7, 12, 6]
+$$
+
+We can see that the relationship holds. $3 + 14 = 0$, $10 + 17 = 0$, $5 + 12 = 0$, and $11 + 6 = 0$. Great.
+
+Let's look at the domain of the next FRI layer.
+
+$$
+[9, 15, 8, 2]
+$$
+
+The relationship holds once more. $9 + 8 = 0$, and $15 + 2 = 0$. Even though we don't compute the index of $layer(-x)$ for the last layer, let's still make sure that the relationship holds as expected.
+
+$$
+[13, 4]
+$$
+
+And indeed, $13 + 4 = 0$.
+
+So we've confirmed numerically that our relationship holds. Next, we'll give a proof of that our relationship holds. This will give us insight into *why* it works.
+
+Recall that the LDE domain is constructed in 2 steps
+
+1. Construct the subgroup $D_0 = \{g^0, g^1, g^2, g^3, g^4, g^5, g^6, g^7\}$, where $g=9$
+2. Shift every element in $D_0$ by 3, $LDE = \{3g^0, 3g^1, 3g^2, 3g^3, 3g^4, 3g^5, 3g^6, 3g^7\}$
+
+To make the proof easier to follow, we will prove the relationship over $D_0$, and then finally show that shifting by 3 doesn't change anything, such that the proof applies to $LDE$ as well.
+
+Therefore, we have $D_0$, a cyclic group of size $N=8$ with generator $g=9$.
+
+Notice that $g^{N/2} = 9^4 = 16$. Then, $\forall i \in \{0, ..., 7\}$,
+
+$$
+g^i + g^{i+4} = g^i + g^i \times g^4 = g^i(1 + 16) = g^i \times 0 = 0
+$$
+
+Hence, $g^{i+4}$ is the additive inverse of $g^i$. But, notice that $g^i$ is at index $i$ in $D_0$, and $g^{i+4}$ is at index $i+4$. Therefore, we just showed that if $x$ is at index $i$, then $-x$ is at index $i+4$. And it follows that if $layer(x)$ is at index $i$, $layer(-x)$ is at index $i+4$!
+
+Can you show that $3g^i$ instead of $g^i$ doesn't change this result?
+
+Lastly, we need to show that this holds for every FRI layer, not just the first one. We'll only give a proof sketch for why this is true. Once again, we will ignore the fact that every element is shifted by 3, because it doesn't change the result and makes the proof easier to read. Remember that we construct the subsequent FRI layer as
+
+$$
+D_1 = \{g^0, g^2, g^4, g^6\}
+$$
+
+Convince yourself that the generator is $g_1 = g^2 = 13$. The size of $D_1$ is half the size of $D_0$; that is, $N_1 = N/2 = 4$.
+
+Notice once again that $g_1^{N_1 / 2} = 13^2 = 16$. We're back where we started! That is, the generator of $D_1$, when exponentiation to half the length of the group ($N_1/2$), yields $16$. Hence, the rest of the proof applies unchanged. Finally, notice that we will get the same result once again for $D_2 = \{g^0, g^4\}$.
+
+This completes the proof sketch. As an exercise, use this proof sketch to write a complete [proof by induction](https://en.wikipedia.org/wiki/Mathematical_induction).
+
+#### Compute the index of $next_layer(x^2)$
+
+TODO
+
 ### Q: How does the verifier ensure that the prover interpolated the trace polynomial over the predetermined DOMAIN_TRACE?
 
 The STARK protocol states that the prover should
