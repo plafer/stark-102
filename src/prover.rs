@@ -167,14 +167,11 @@ fn generate_query_phase(
     };
 
     // Query FRI layer of degree 1 (domain size = 4)
-    // TODO: Explain why it's %4
-    // Core idea: [a,b,c,d,e,f,g]^2 -> [x,y,z,w,x,y,z,w].
-    // e.g. query_idx = 5, then f^2 = y, and query_idx_next = 5%4 = 1 (which is also `y`)
-    // TODO: Use DOMAIN_LDE.len()/2
-    let query_idx_fri_1_x = query_idx % 4;
+    let domain_len_fri_1 = DOMAIN_LDE.len() / 2;
+    let query_idx_fri_1_x = query_idx % domain_len_fri_1;
 
     let (fri_layer_deg_1_minus_x, fri_layer_deg_1_minus_x_proof) = {
-        let query_idx_fri_1_minus_x = (query_idx_fri_1_x + 2) % 4;
+        let query_idx_fri_1_minus_x = (query_idx_fri_1_x + domain_len_fri_1 / 2) % domain_len_fri_1;
 
         (
             fri_layer_deg_1_eval[query_idx_fri_1_minus_x],

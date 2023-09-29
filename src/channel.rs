@@ -36,7 +36,7 @@ impl Channel {
     }
 
     /// Draws a random element from `BaseField` (i.e. a number between 0 and 16).
-    /// 
+    ///
     /// Captures a message sent from the verifier to the prover.
     pub fn random_element(&mut self) -> BaseField {
         let hash_first_4_bytes: [u8; 4] = self.current_hash.as_bytes()[0..4].try_into().unwrap();
@@ -48,7 +48,7 @@ impl Channel {
     }
 
     /// Draws a random integer (uniformly distributed) in the range [0, upper_bound-1].
-    /// 
+    ///
     /// Captures a message sent from the verifier to the prover.
     pub fn random_integer(&mut self, upper_bound: u8) -> u8 {
         let hash_first_byte: [u8; 1] = self.current_hash.as_bytes()[0..1].try_into().unwrap();
