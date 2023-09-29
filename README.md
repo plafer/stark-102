@@ -130,7 +130,7 @@ Notice once again that $g_1^{N_1 / 2} = 13^2 = 16$. We're back where we started!
 
 This completes the proof sketch. As an exercise, use this proof sketch to write a complete [proof by induction](https://en.wikipedia.org/wiki/Mathematical_induction).
 
-#### Compute the index of $\texttt{next\\_layer(x^2)}$
+#### Compute the index of $next\_layer(x^2)$
 Let $FRI_0$ be the array of $N=8$ elements representing the evaluations of the composition polynomial over the LDE domain. The verifier queried for $x$ at index $\texttt{idx}$. We want to show why the index of $FRI_1[x^2]$ is $idx \mod{N/2}$, where $FRI_1$ is the array of $N_1=4$ elements representing the evaluations of the next FRI layer. We will only do a proof sketch. Similar to the previous proof, we will work with $D_0 = \{g^0, ..., g^7\}$ instead of $LDE$ because it makes the proof easier to follow, and the "shift by 3" doesn't change the result.
 
 Remember that by definition of being a generator of $D_0$, $g^8 = 1$. Remember also that we compute the domain of the next FRI layer by squaring each elements, and taking the first (or second) half of the resulting array. Let's first show why the first and second half of the squared domain $(D_0)^2$ are equal.
