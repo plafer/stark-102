@@ -70,7 +70,7 @@ When constructing the query phase of the proof, the prover needs to send $\textt
 
 Both of these problems are solved in STARK 101, but not explained. Explaining *why* the way we compute these is correct is the goal of this section.
 
-#### Computing the index of $\texttt{layer}(-x)$
+#### Computing the index of layer(-x)
 If the FRI layer has $N$ elements, and the index of $\texttt{layer}(x)$ is $\texttt{idx}$, then the index of $\texttt{layer}(-x)$ is $idx + (N/2) % N$. We'll explore why that is in two stages. First, we'll make sure that it makes sense by looking at actual values. Then, we'll show a proof for why it works when the prime is 17 (as is the case for our problem). This turns out to hold for all [Proth primes](https://en.wikipedia.org/wiki/Proth_prime), but we will not show that here.
 
 The first thing to realize is that computing the index of $\texttt{layer}(-x)$ based on the index of $\texttt{layer}(x)$ is the same as computing the index of $-x$ based on the index of $x$. Make sure you convince yourself that this is the case. Remember that $-x$ is defined as $x + (-x) = 0$; that is, for any $x$, $-x$ is the field element that when added to $x$ yields $0$. 
@@ -130,7 +130,7 @@ Notice once again that $g_1^{N_1 / 2} = 13^2 = 16$. We're back where we started!
 
 This completes the proof sketch. As an exercise, use this proof sketch to write a complete [proof by induction](https://en.wikipedia.org/wiki/Mathematical_induction).
 
-#### Compute the index of $next\_layer(x^2)$
+#### Compute the index of next_layer(x^2)
 Let $FRI_0$ be the array of $N=8$ elements representing the evaluations of the composition polynomial over the LDE domain. The verifier queried for $x$ at index $\texttt{idx}$. We want to show why the index of $FRI_1[x^2]$ is $idx \mod{N/2}$, where $FRI_1$ is the array of $N_1=4$ elements representing the evaluations of the next FRI layer. We will only do a proof sketch. Similar to the previous proof, we will work with $D_0 = \{g^0, ..., g^7\}$ instead of $LDE$ because it makes the proof easier to follow, and the "shift by 3" doesn't change the result.
 
 Remember that by definition of being a generator of $D_0$, $g^8 = 1$. Remember also that we compute the domain of the next FRI layer by squaring each elements, and taking the first (or second) half of the resulting array. Let's first show why the first and second half of the squared domain $(D_0)^2$ are equal.
